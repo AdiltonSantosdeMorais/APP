@@ -1,0 +1,22 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db?connection_limit=1"
+}
+
+model Reporte {
+  id                Int      @id @default(autoincrement())
+  data_acidente     String
+  hora_acidente     String
+  empresa           String
+  localizacao       String
+  descricao         String
+  acao_imediata     String
+  relator_nome      String?  @default("Anônimo")
+  supervisor_nome   String
+  criado_em         DateTime @default(now())
+}
