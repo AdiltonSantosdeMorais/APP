@@ -5,25 +5,22 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve arquivos estáticos da pasta public que está dentro de src
+// Serve arquivos estáticos (CSS, Imagens) da pasta src/public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rota principal
+// Rota principal: Entrega o formulário
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Rota de envio do formulário
+// Rota para receber os dados
 app.post('/enviar-relato', (req, res) => {
-    const { nombre, fecha, descripcion } = req.body;
-    console.log("Nuevo relato recibido:", { nombre, fecha, descripcion });
-    
-    res.status(201).json({ 
-        mensagem: `✅ Gracias ${nombre}, su reporte ha sido registrado.` 
-    });
+    const { nombre } = req.body;
+    console.log("Relato recebido de:", nombre);
+    res.status(201).json({ mensagem: `✅ Gracias ${nombre}, reporte enviado!` });
 });
 
-// Fallback para rotas não encontradas
+// Fallback: Se der erro, manda para o index
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
