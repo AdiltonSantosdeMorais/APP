@@ -8,10 +8,6 @@
   ],
   "routes": [
     {
-      "src": "/enviar-relato",
-      "dest": "src/server.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "src/server.js"
     }
