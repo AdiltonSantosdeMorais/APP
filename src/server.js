@@ -5,8 +5,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve os arquivos da pasta public (CSS, Imagens, JS do navegador)
-app.use(express.static(path.join(__dirname, '../public')));
+// IMPORTANTE: Indica que os arquivos estáticos estão na pasta src/public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rota principal que entrega o HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/index.html'));
+});
 
 // Rota para o formulário
 app.post('/enviar-relato', (req, res) => {
@@ -14,19 +19,14 @@ app.post('/enviar-relato', (req, res) => {
     res.status(201).json({ mensagem: "✅ Reporte enviado com sucesso!" });
 });
 
-// ESTA ROTA É A QUE FALTA: Ela entrega o index.html quando você abre o link
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
-});
-
-// Rota de fallback (caso qualquer outra rota falhe)
+// Fallback para qualquer outra rota (garante que o F5 não dê erro)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Servidor Elecnor rodando na porta ${PORT}`);
 });
 
 module.exports = app;
