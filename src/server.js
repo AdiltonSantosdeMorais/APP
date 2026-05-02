@@ -5,23 +5,23 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// IMPORTANTE: Indica que os arquivos estáticos estão na pasta src/public
+// IMPORTANTE: Como o server.js e a pasta public estão na mesma pasta (src)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rota principal que entrega o HTML
+// Rota principal que entrega o HTML da Elecnor
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Rota para o formulário
+// Rota para o formulário funcionar
 app.post('/enviar-relato', (req, res) => {
     console.log("Dados recebidos:", req.body);
     res.status(201).json({ mensagem: "✅ Reporte enviado com sucesso!" });
 });
 
-// Fallback para qualquer outra rota (garante que o F5 não dê erro)
+// Garante que qualquer outra rota também abra o formulário
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
