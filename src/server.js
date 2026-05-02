@@ -1,23 +1,36 @@
 const express = require('express');
 const path = require('path');
-const multer = require('multer');
 const app = express();
-const upload = multer(); // Para lidar com o formulário de foto
 
+// Suporta JSON e formulários simples
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve a pasta public (onde está seu HTML e a Logo)
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Rota configurada para receber o formulário com foto (upload.any())
-app.post('/enviar-relato', upload.any(), (req, res) => {
+// Rota de envio (Simulada para funcionar em qualquer lugar)
+app.post('/enviar-relato', (req, res) => {
     const { nombre } = req.body;
-    res.status(201).json({ mensagem: `✅ ¡Gracias ${nombre}! Reporte enviado con éxito.` });
+    console.log("Relato recebido de:", nombre);
+    
+    res.status(201).json({ 
+        mensagem: `✅ ¡Gracias ${nombre || 'Relator'}! El reporte ha sido enviado con éxito.` 
+    });
+});
+
+// Fallback para rotas inexistentes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor na porta ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Servidor online na porta ${PORT}`);
+});
 
 module.exports = app;

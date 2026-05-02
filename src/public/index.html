@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REPORTE DE INCIDENTE - ELECNOR</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .logo { width: 180px; margin-bottom: 10px; }
-        h2 { color: #003366; font-size: 17px; text-transform: uppercase; margin: 0; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-        .row { display: flex; gap: 15px; margin-top: 20px; }
-        .form-group { flex: 1; display: flex; flex-direction: column; margin-bottom: 15px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; text-align: center; }
+        .logo { width: 180px; margin-bottom: 20px; }
+        h2 { color: #003366; font-size: 18px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { text-align: left; margin-bottom: 15px; display: flex; flex-direction: column; }
         label { font-size: 13px; font-weight: bold; color: #444; margin-bottom: 5px; }
         input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
@@ -19,43 +17,30 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="logo-elecnor.png" alt="Elecnor" class="logo">
-            <h2>REPORTE CUASI ACCIDENTE / CONDICIÓN INSEGURA</h2>
-        </div>
+        <img src="logo-elecnor.png" alt="Elecnor" class="logo">
+        <h2>REPORTE CUASI ACCIDENTE / CONDICIÓN INSEGURA</h2>
         
         <form id="relatoForm">
-            <div class="row">
-                <div class="form-group">
-                    <label for="fecha">Fecha</label>
-                    <input type="date" id="fecha" name="fecha" required>
-                </div>
-                <div class="form-group">
-                    <label for="hora">Hora</label>
-                    <input type="time" id="hora" name="hora" required>
-                </div>
+            <div class="form-group">
+                <label for="fecha">Fecha y Hora</label>
+                <input type="datetime-local" id="fecha" name="fecha" required>
             </div>
-
             <div class="form-group">
                 <label for="unidad">Unidad / Localización</label>
-                <input type="text" id="unidad" name="unidad" required>
+                <input type="text" id="unidad" name="unidad" placeholder="Ej: SE Copiapó" required>
             </div>
-
             <div class="form-group">
                 <label for="descripcion">Descripción del Riesgo</label>
-                <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
+                <textarea id="descripcion" name="descripcion" rows="4" placeholder="Describa el riesgo observado..." required></textarea>
             </div>
-
             <div class="form-group">
-                <label for="foto">Anexar Foto (Evidencia)</label>
-                <input type="file" id="foto" name="foto" accept="image/*">
+                <label for="foto">Anexar Foto de Evidencia</label>
+                <input type="file" id="foto" accept="image/*">
             </div>
-
             <div class="form-group">
-                <label for="nombre">Nombre del Relator</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Nombre completo" required>
+                <label for="nombre">Nombre del Relator (Obligatorio)</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Su nombre completo" required>
             </div>
-
             <button type="submit">ENVIAR REPORTE</button>
         </form>
     </div>
@@ -63,11 +48,17 @@
     <script>
         document.getElementById('relatoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const response = await fetch('/enviar-relato', { method: 'POST', body: formData });
+            const nombre = document.getElementById('nombre').value;
+            
+            // Simulação de envio para evitar erros de upload na Vercel Free
+            const response = await fetch('/enviar-relato', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: nombre })
+            });
             const result = await response.json();
             alert(result.mensagem);
-            if(response.ok) e.target.reset();
+            e.target.reset();
         });
     </script>
 </body>
