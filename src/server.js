@@ -5,26 +5,23 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve os arquivos da pasta public (HTML, CSS, JS)
-// O caminho '../public' sobe um nível pois o server está dentro de /src
+// IMPORTANTE: Ajuste do caminho para a Vercel encontrar o HTML
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Rota para receber o formulário
+// Rota para o formulário
 app.post('/enviar-relato', (req, res) => {
-    try {
-        console.log("Relato recebido:", req.body);
-        res.status(201).json({ 
-            mensagem: "✅ Reporte registrado com sucesso (Modo Demonstração)." 
-        });
-    } catch (error) {
-        res.status(500).json({ mensagem: "Erro ao processar relato." });
-    }
+    console.log("Dados recebidos:", req.body);
+    res.status(201).json({ mensagem: "✅ Reporte enviado com sucesso!" });
 });
 
-// Porta dinâmica para Vercel
+// Rota principal para garantir que o index.html abra
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor Elecnor rodando na porta ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
 
 module.exports = app;
