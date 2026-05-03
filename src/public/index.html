@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HSE Elecnor - Copiapó Solar</title>
+    <link rel="manifest" href="/manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; }
@@ -12,7 +13,7 @@
         .header-table { width: 100%; border-collapse: collapse; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 11px; }
         .logo-img { width: 80px; height: auto; }
-        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; border-top: none; }
+        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 140px; box-sizing: border-box; }
         .cell:last-child { border-right: none; }
@@ -28,7 +29,6 @@
     </style>
 </head>
 <body>
-
 <div class="app-container">
     <form id="hSEForm">
         <table class="header-table">
@@ -38,15 +38,13 @@
                 <td style="width: 25%; color: #0088cc;">HSS&S</td>
             </tr>
         </table>
-
         <div class="section-header">1. CONTEXTO</div>
         <div class="row">
             <div class="cell"><label>FECHA:</label><input type="date" id="fecha" required></div>
             <div class="cell"><label>HORA:</label><input type="time" id="hora" required></div>
         </div>
         <div class="row">
-            <div class="cell" style="flex: 1.5;">
-                <label>DEPARTAMENTO:</label>
+            <div class="cell" style="flex: 1.5;"><label>DEPARTAMENTO:</label>
                 <select id="depto" required>
                     <option value="">Seleccione...</option>
                     <option value="ADM/RRHH">ADM/RRHH</option>
@@ -57,8 +55,7 @@
                     <option value="LOGISTICA">LOGISTICA</option>
                 </select>
             </div>
-            <div class="cell" style="flex: 2;">
-                <label>ÁREA ESPECÍFICA:</label>
+            <div class="cell" style="flex: 2;"><label>ÁREA ESPECÍFICA:</label>
                 <div class="area-grid">
                     <label class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</label>
                     <label class="check-item"><input type="checkbox" name="area" value="PV"> PV</label>
@@ -69,31 +66,25 @@
                 </div>
             </div>
         </div>
-
         <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
         <div class="row"><div class="cell"><textarea id="desc" rows="3" placeholder="¿Qué passou?" required></textarea></div></div>
-
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
             <label style="cursor:pointer">📸 Toque para capturar foto</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
-
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>NARRADOR:</label><input type="text" id="narrador" placeholder="Opcional"></div>
+            <div class="cell"><label>NARRADOR:</label><input type="text" id="relator" placeholder="Opcional"></div>
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
         </div>
-
         <button type="submit" class="btn-submit">GERAR RELATÓRIO PDF</button>
     </form>
 </div>
-
 <script>
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
-
     fotoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -120,11 +111,9 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Logo
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
-        // --- CABEÇALHO ---
         doc.setLineWidth(0.4);
         doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
@@ -133,11 +122,9 @@
         doc.text("Copiapó Solar", 105, 27, { align: 'center' });
         doc.setTextColor(0, 136, 204); doc.text("HSS&S", 175, 23, { align: 'center' });
         
-        // --- SEÇÃO 1: CONTEXTO ---
         doc.setTextColor(0); doc.setFillColor(203, 213, 224);
         doc.rect(10, 35, 190, 7, 'F'); doc.rect(10, 35, 190, 7);
         doc.setFontSize(9); doc.text("1. CONTEXTO", 15, 40);
-
         doc.rect(10, 42, 190, 22); doc.line(10, 53, 200, 53); doc.line(105, 42, 105, 53);
         doc.setFontSize(8); doc.setFont("helvetica", "normal");
         doc.text("FECHA: " + document.getElementById('fecha').value, 12, 49);
@@ -146,40 +133,33 @@
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
         doc.text("ÁREAS: " + areas, 107, 60);
 
-        // --- SEÇÃO 2: DESCRIPCIÓN ---
         doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 64, 190, 7, 'F'); doc.rect(10, 64, 190, 7);
         doc.text("2. DESCRIPCIÓN", 15, 69);
-        doc.rect(10, 71, 190, 30);
-        doc.setFont("helvetica", "normal");
-        const splitDesc = doc.splitTextToSize(document.getElementById('desc').value, 180);
-        doc.text(splitDesc, 12, 77);
+        doc.rect(10, 71, 190, 30); doc.setFont("helvetica", "normal");
+        doc.text(doc.splitTextToSize(document.getElementById('desc').value, 180), 12, 77);
 
-        // --- SEÇÃO 4: IDENTIFICACIÓN (Subindo para caber tudo) ---
         doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 101, 190, 7, 'F'); doc.rect(10, 101, 190, 7);
         doc.text("4. IDENTIFICACIÓN", 15, 106);
         doc.rect(10, 108, 190, 12); doc.line(105, 108, 105, 120);
         doc.setFont("helvetica", "normal");
-        doc.text("NARRADOR: " + (document.getElementById('narrador').value || "N/A"), 12, 115);
+        doc.text("NARRADOR: " + (document.getElementById('relator').value || "N/A"), 12, 115);
         doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 107, 115);
 
-        // --- SEÇÃO 3: REGISTRO FOTOGRÁFICO (Na mesma página!) ---
         doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 120, 190, 7, 'F'); doc.rect(10, 120, 190, 7);
         doc.text("3. REGISTRO FOTOGRÁFICO", 15, 125);
-        
-        doc.rect(10, 127, 190, 110); // Espaço fixo para a foto
+        doc.rect(10, 127, 190, 110); 
         if (preview.style.display === 'block') {
-            // A foto é redimensionada para caber no quadro de 170x100mm
             doc.addImage(preview.src, 'JPEG', 20, 132, 170, 100);
-        } else {
-            doc.setFont("helvetica", "normal");
-            doc.text("Sem foto anexada.", 105, 180, { align: 'center' });
         }
-
         doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
     });
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
 </script>
 </body>
 </html>
