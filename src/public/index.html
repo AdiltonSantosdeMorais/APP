@@ -7,54 +7,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; }
-        
         body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
-        
-        /* Container que se ajusta a qualquer tela */
-        .app-container { 
-            background: white; 
-            width: 100%; 
-            max-width: 800px; 
-            margin: 0 auto;
-            min-height: 100vh; 
-            border: 1px solid #000; 
-            box-sizing: border-box; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        
-        /* Cabeçalho responsivo */
+        .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; box-sizing: border-box; display: flex; flex-direction: column; }
         .header-table { width: 100%; border-collapse: collapse; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 11px; }
         .logo-img { width: 80px; height: auto; }
-
         .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; border-top: none; }
-        
-        /* Grid flexível para celular */
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 140px; box-sizing: border-box; }
         .cell:last-child { border-right: none; }
-        
         label { font-size: 10px; font-weight: bold; margin-bottom: 4px; color: var(--blue); }
         input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; }
-
-        /* Ajuste das Checkboxes para não quebrar o layout */
         .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 5px; width: 100%; padding: 5px 0; }
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
         .check-item input { width: auto; margin-right: 5px; }
-
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
         #preview { width: 100%; max-height: 200px; object-fit: contain; display: none; margin-top: 10px; }
-
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
-
-        /* Ajuste para telas muito pequenas */
-        @media (max-width: 400px) {
-            .header-table td { font-size: 9px; padding: 3px; }
-            .logo-img { width: 60px; }
-            .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; }
-            .cell:last-child { border-bottom: none; }
-        }
+        @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } .cell:last-child { border-bottom: none; } }
     </style>
 </head>
 <body>
@@ -63,7 +33,7 @@
     <form id="hSEForm">
         <table class="header-table">
             <tr>
-                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
+                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img" crossorigin="anonymous"></td>
                 <td style="width: 50%;">Formulario de reporte de cuasi accidente<br>Copiapó Solar</td>
                 <td style="width: 25%; color: #0088cc;">HSS&S</td>
             </tr>
@@ -101,11 +71,11 @@
         </div>
 
         <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
-        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="¿Qué pasó? ¿Qué evitó el accidente?" required></textarea></div></div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="¿Qué pasó?" required></textarea></div></div>
 
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 Toque para capturar foto</label>
+            <label style="cursor:pointer">📸 Capturar evidencia</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
@@ -133,14 +103,30 @@
         }
     });
 
+    // Função para converter a logo em Base64 para o PDF
+    function getBase64Image(img) {
+        var canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        return canvas.toDataURL("image/png");
+    }
+
     document.getElementById('hSEForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
+        const logo = document.getElementById('logoImg');
 
-        // Desenha o PDF com medidas fixas (A4) para manter o padrão Elecnor
+        try {
+            const logoBase64 = getBase64Image(logo);
+            doc.addImage(logoBase64, 'PNG', 15, 12, 35, 15);
+        } catch (e) { console.error("Erro na logo:", e); }
+
+        // Desenho do PDF
         doc.setLineWidth(0.5);
-        doc.rect(10, 10, 190, 25); // Header
+        doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
         
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
