@@ -22,7 +22,7 @@
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
         .check-item input { width: auto; margin-right: 5px; }
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
-        #preview { width: 100%; max-height: 200px; object-fit: contain; display: none; margin-top: 10px; }
+        #preview { width: 100%; max-height: 150px; object-fit: contain; display: none; margin-top: 10px; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
     </style>
@@ -71,11 +71,11 @@
         </div>
 
         <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
-        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="¿Qué pasó?" required></textarea></div></div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="3" placeholder="¿Qué passou?" required></textarea></div></div>
 
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 Capturar evidencia</label>
+            <label style="cursor:pointer">📸 Toque para capturar foto</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
@@ -103,15 +103,16 @@
         }
     });
 
-    // Função para garantir que a logo seja carregada corretamente
     async function getLogoBase64(url) {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-        });
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch (e) { return null; }
     }
 
     document.getElementById('hSEForm').addEventListener('submit', async function(e) {
@@ -119,56 +120,65 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Carrega a logo antes de desenhar
-        try {
-            const logoBase64 = await getLogoBase64('logo-elecnor.png');
-            doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
-        } catch (err) { console.warn("Logo não encontrada, gerando PDF sem ela."); }
+        // Logo
+        const logoBase64 = await getLogoBase64('logo-elecnor.png');
+        if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
-        // --- ESTRUTURA A4 ---
-        doc.setLineWidth(0.5);
-        doc.rect(10, 10, 190, 25); // Borda do cabeçalho
+        // --- CABEÇALHO ---
+        doc.setLineWidth(0.4);
+        doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
-        
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
         doc.text("Formulario de reporte de cuasi accidente", 105, 20, { align: 'center' });
         doc.text("Copiapó Solar", 105, 27, { align: 'center' });
         doc.setTextColor(0, 136, 204); doc.text("HSS&S", 175, 23, { align: 'center' });
         
+        // --- SEÇÃO 1: CONTEXTO ---
         doc.setTextColor(0); doc.setFillColor(203, 213, 224);
-        doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
-        doc.text("1. CONTEXTO", 15, 41);
+        doc.rect(10, 35, 190, 7, 'F'); doc.rect(10, 35, 190, 7);
+        doc.setFontSize(9); doc.text("1. CONTEXTO", 15, 40);
 
-        doc.rect(10, 43, 190, 30); doc.line(10, 58, 200, 58); doc.line(105, 43, 105, 58);
-        doc.setFontSize(8);
-        doc.text("FECHA: " + document.getElementById('fecha').value, 12, 50);
-        doc.text("HORA: " + document.getElementById('hora').value, 107, 50);
-        doc.text("DEPARTAMENTO: " + document.getElementById('depto').value, 12, 68);
-        
+        doc.rect(10, 42, 190, 22); doc.line(10, 53, 200, 53); doc.line(105, 42, 105, 53);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal");
+        doc.text("FECHA: " + document.getElementById('fecha').value, 12, 49);
+        doc.text("HORA: " + document.getElementById('hora').value, 107, 49);
+        doc.text("DEPTO: " + document.getElementById('depto').value, 12, 60);
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
-        doc.text("ÁREAS ESPECÍFICAS: " + areas, 107, 68);
+        doc.text("ÁREAS: " + areas, 107, 60);
 
-        doc.setFillColor(203, 213, 224); doc.rect(10, 73, 190, 8, 'F'); doc.rect(10, 73, 190, 8);
-        doc.text("2. DESCRIPCIÓN DO EVENTO", 15, 79);
-        doc.rect(10, 81, 190, 50);
+        // --- SEÇÃO 2: DESCRIPCIÓN ---
+        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
+        doc.rect(10, 64, 190, 7, 'F'); doc.rect(10, 64, 190, 7);
+        doc.text("2. DESCRIPCIÓN", 15, 69);
+        doc.rect(10, 71, 190, 30);
         doc.setFont("helvetica", "normal");
-        doc.text(doc.splitTextToSize(document.getElementById('desc').value, 180), 12, 88);
+        const splitDesc = doc.splitTextToSize(document.getElementById('desc').value, 180);
+        doc.text(splitDesc, 12, 77);
 
-        doc.setFillColor(203, 213, 224); doc.rect(10, 131, 190, 8, 'F'); doc.rect(10, 131, 190, 8);
-        doc.setFont("helvetica", "bold"); doc.text("4. IDENTIFICACIÓN", 15, 137);
-        doc.rect(10, 139, 190, 15); doc.line(105, 139, 105, 154);
-        doc.text("NARRADOR: " + (document.getElementById('narrador').value || "N/A"), 12, 148);
-        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 107, 148);
+        // --- SEÇÃO 4: IDENTIFICACIÓN (Subindo para caber tudo) ---
+        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
+        doc.rect(10, 101, 190, 7, 'F'); doc.rect(10, 101, 190, 7);
+        doc.text("4. IDENTIFICACIÓN", 15, 106);
+        doc.rect(10, 108, 190, 12); doc.line(105, 108, 105, 120);
+        doc.setFont("helvetica", "normal");
+        doc.text("NARRADOR: " + (document.getElementById('narrador').value || "N/A"), 12, 115);
+        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 107, 115);
 
-        // Página 2 para a Foto
+        // --- SEÇÃO 3: REGISTRO FOTOGRÁFICO (Na mesma página!) ---
+        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
+        doc.rect(10, 120, 190, 7, 'F'); doc.rect(10, 120, 190, 7);
+        doc.text("3. REGISTRO FOTOGRÁFICO", 15, 125);
+        
+        doc.rect(10, 127, 190, 110); // Espaço fixo para a foto
         if (preview.style.display === 'block') {
-            doc.addPage();
-            doc.setFillColor(203, 213, 224); doc.rect(10, 10, 190, 8, 'F'); doc.rect(10, 10, 190, 8);
-            doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO", 15, 16);
-            doc.addImage(preview.src, 'JPEG', 15, 25, 180, 120);
+            // A foto é redimensionada para caber no quadro de 170x100mm
+            doc.addImage(preview.src, 'JPEG', 20, 132, 170, 100);
+        } else {
+            doc.setFont("helvetica", "normal");
+            doc.text("Sem foto anexada.", 105, 180, { align: 'center' });
         }
 
-        doc.save(`Reporte_HSE_${document.getElementById('fecha').value}.pdf`);
+        doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
     });
 </script>
 </body>
