@@ -3,148 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Elecnor Chile</title>
-    
+    <title>Relatório Elecnor Chile - Copiapó Solar</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#003366">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 10px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 800px; border: 2px solid #000; }
         
-        /* Cabeçalho igual à imagem: Logo esquerda, Título direita */
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 20px; }
-        .logo { width: 140px; }
-        .header-title { color: #003366; font-size: 14px; text-transform: uppercase; text-align: right; font-weight: bold; flex: 1; }
-        
-        hr { border: 0; border-top: 1px solid #eee; margin-bottom: 20px; }
-        
-        .form-group { text-align: left; margin-bottom: 15px; display: flex; flex-direction: column; }
-        label { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
-        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        input:focus, textarea:focus { border-color: #003366; outline: none; }
-        
-        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background-color: #002244; }
+        /* Tabela Superior (Header) */
+        .table-header { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .table-header td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 12px; }
+        .logo-td { width: 30%; }
+        .logo-img { width: 100px; }
+        .hss-img { width: 60px; }
+
+        /* Seções de Título Cinza */
+        .section-title { background-color: #d1dce7; border: 1px solid #000; padding: 5px; font-weight: bold; font-size: 13px; text-transform: uppercase; }
+
+        /* Grade do Formulário */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; }
+        .grid-item { border-bottom: 1px solid #000; padding: 8px; display: flex; flex-direction: column; }
+        .grid-item:nth-child(odd) { border-right: 1px solid #000; }
+        .full-width { grid-column: span 2; border-right: none !important; }
+
+        label { font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #333; }
+        input, textarea, select { border: none; font-size: 14px; outline: none; background: transparent; width: 100%; }
+        textarea { resize: none; }
+
+        .footer-info { font-size: 9px; display: flex; justify-content: space-between; padding: 10px; }
+
+        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img id="logoImg" src="logo-elecnor.png" alt="Elecnor Chile" class="logo">
-            <div class="header-title">
-                RELATÓRIO DE QUASE ACIDENTE /<br>CONDICÃO INSEGURA
-            </div>
-        </div>
-        
-        <hr>
-        
+        <table class="table-header">
+            <tr>
+                <td class="logo-td"><img id="logoElecnor" src="logo-elecnor.png" class="logo-img"></td>
+                <td>Formulario de Reporte de Cuasi Accidente<br>Copiapó Solar</td>
+                <td class="logo-td">HSS & S</td>
+            </tr>
+        </table>
+
         <form id="relatoForm">
-            <div class="form-group">
-                <label for="fecha">Data e hora</label>
-                <input type="datetime-local" id="fecha" required>
+            <div class="section-title">ANTECEDENTES</div>
+            <div class="grid-container">
+                <div class="grid-item"><label>Fecha de Cuasi Accidente:</label><input type="date" id="fecha" required></div>
+                <div class="grid-item"><label>Hora:</label><input type="time" id="hora" required></div>
+                <div class="grid-item full-width"><label>Empresa:</label><input type="text" id="empresa" placeholder="Elecnor o Contratista" required></div>
+                <div class="grid-item full-width"><label>Ubicación - Área Específica (IIFF, PV, BES, LAT, etc):</label><input type="text" id="ubicacion" required></div>
             </div>
-            
-            <div class="form-group">
-                <label for="unidad">Unidade/Localização</label>
-                <input type="text" id="unidad" placeholder="Ex: SE Copiapó" required>
+
+            <div class="section-title">DESCRIPCIÓN (¿Qué pasó? ¿Qué evitó el accidente?)</div>
+            <div class="grid-container">
+                <div class="grid-item full-width"><textarea id="descripcion" rows="4" required></textarea></div>
             </div>
-            
-            <div class="form-group">
-                <label for="descripcion">Descrição do risco</label>
-                <textarea id="descripcion" rows="4" placeholder="Detalhe a situação observada..." required></textarea>
+
+            <div class="section-title">REGISTRO FOTOGRÁFICO / EVIDENCIA</div>
+            <div class="grid-container">
+                <div class="grid-item full-width"><input type="file" id="foto" accept="image/*"></div>
             </div>
-            
-            <div class="form-group">
-                <label for="foto">Anexe provas fotográficas</label>
-                <input type="file" id="foto" accept="image/*">
+
+            <div class="section-title">ACCIÓN INMEDIATA REALIZADA</div>
+            <div class="grid-container">
+                <div class="grid-item full-width"><textarea id="accion" rows="2" required></textarea></div>
             </div>
-            
-            <div class="form-group">
-                <label for="nombre">Nome do Relator (Obrigatório)</label>
-                <input type="text" id="nombre" placeholder="Seu nome completo" required>
+
+            <div class="section-title">PERSONA QUE REPORTA</div>
+            <div class="grid-container">
+                <div class="grid-item"><label>Nombre y Apellidos:</label><input type="text" id="relator" required></div>
+                <div class="grid-item"><label>Cargo:</label><input type="text" id="cargo_relator"></div>
             </div>
-            
-            <button type="submit" id="btnSubmit">GERAR RELATÓRIO E BAIXAR PDF</button>
+
+            <div class="section-title">SUPERVISOR DIRECTO</div>
+            <div class="grid-container">
+                <div class="grid-item"><label>Nombre y Apellidos:</label><input type="text" id="supervisor" required></div>
+                <div class="grid-item"><label>Cargo:</label><input type="text" id="cargo_supervisor"></div>
+            </div>
+
+            <button type="submit">GERAR RELATÓRIO TÉCNICO PDF</button>
         </form>
+
+        <div class="footer-info">
+            <span>IIFF: Instalación de Faena</span>
+            <span>PV: Parque Fotovoltaico</span>
+            <span>LAT: Línea de Alta Tensión</span>
+        </div>
     </div>
 
     <script>
-        // Registro do Service Worker para funcionamento Offline
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(err => console.log("SW Erro:", err));
-        }
+        // Registro do Service Worker para Offline
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
 
         document.getElementById('relatoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Captura de dados
-            const logo = document.getElementById('logoImg');
-            const fecha = document.getElementById('fecha').value;
-            const unidad = document.getElementById('unidad').value;
-            const desc = document.getElementById('descripcion').value;
-            const nombre = document.getElementById('nombre').value;
-            const fotoInput = document.getElementById('foto');
-
-            // --- Gerando o Layout do PDF (Igual ao App) ---
-            // Logo e Título
-            doc.addImage(logo, 'PNG', 15, 10, 40, 18);
-            doc.setFontSize(11);
-            doc.setTextColor(0, 51, 102);
-            doc.setFont("helvetica", "bold");
-            doc.text("RELATÓRIO DE QUASE ACIDENTE / \nCONDICÃO INSEGURA", 195, 18, { align: 'right' });
-            
-            // Linha divisória
-            doc.setDrawColor(220, 220, 220);
-            doc.line(15, 32, 195, 32);
-
-            // Conteúdo
+            // Layout do PDF em formato de Tabela
+            doc.rect(10, 10, 190, 20); // Header box
             doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            
-            doc.setFont("helvetica", "bold"); doc.text("Data e hora:", 15, 42);
-            doc.setFont("helvetica", "normal"); doc.text(fecha.replace('T', ' '), 15, 47);
+            doc.text("Reporte de Cuasi Accidente - Copiapó Solar", 105, 22, { align: 'center' });
 
-            doc.setFont("helvetica", "bold"); doc.text("Unidade/Localização:", 15, 57);
-            doc.setFont("helvetica", "normal"); doc.text(unidad, 15, 62);
+            // Seção Antecedentes
+            doc.setFillColor(209, 220, 231);
+            doc.rect(10, 30, 190, 8, 'F');
+            doc.rect(10, 30, 190, 8);
+            doc.text("ANTECEDENTES", 15, 35);
 
-            doc.setFont("helvetica", "bold"); doc.text("Descrição do risco:", 15, 72);
-            doc.setFont("helvetica", "normal");
-            doc.text(desc, 15, 77, { maxWidth: 180 });
+            doc.rect(10, 38, 190, 20);
+            doc.setFontSize(8);
+            doc.text(`Fecha: ${document.getElementById('fecha').value} | Hora: ${document.getElementById('hora').value}`, 15, 45);
+            doc.text(`Empresa: ${document.getElementById('empresa').value}`, 15, 52);
 
-            doc.setFont("helvetica", "bold"); doc.text("Nome do Relator:", 15, 110);
-            doc.setFont("helvetica", "normal"); doc.text(nombre, 15, 115);
-
-            // Inserir Foto se houver
-            if (fotoInput.files && fotoInput.files[0]) {
+            // Foto
+            const fotoInput = document.getElementById('foto');
+            if (fotoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    doc.setFont("helvetica", "bold"); doc.text("Prova Fotográfica:", 15, 125);
-                    doc.addImage(event.target.result, 'JPEG', 15, 130, 90, 65);
-                    finalizar();
+                    doc.addPage();
+                    doc.text("EVIDENCIA FOTOGRAFICA", 15, 20);
+                    doc.addImage(event.target.result, 'JPEG', 15, 30, 180, 120);
+                    doc.save("Relatorio_Tecnico_Elecnor.pdf");
                 };
                 reader.readAsDataURL(fotoInput.files[0]);
             } else {
-                finalizar();
+                doc.save("Relatorio_Tecnico_Elecnor.pdf");
             }
-
-            function finalizar() {
-                doc.save(`Relatorio_Elecnor_${unidad}.pdf`);
-                alert("✅ Sucesso! Relatório gerado e PDF baixado.");
-                
-                // Envio para o servidor (Opcional - registro em log)
-                fetch('/enviar-relato', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, unidad })
-                });
-
-                e.target.reset();
-            }
+            
+            alert("✅ Relatório Técnico Gerado!");
         });
     </script>
 </body>
