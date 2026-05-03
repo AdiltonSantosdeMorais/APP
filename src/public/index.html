@@ -24,7 +24,7 @@
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
         #preview { width: 100%; max-height: 200px; object-fit: contain; display: none; margin-top: 10px; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
-        @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } .cell:last-child { border-bottom: none; } }
+        @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
     </style>
 </head>
 <body>
@@ -33,7 +33,7 @@
     <form id="hSEForm">
         <table class="header-table">
             <tr>
-                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img" crossorigin="anonymous"></td>
+                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
                 <td style="width: 50%;">Formulario de reporte de cuasi accidente<br>Copiapó Solar</td>
                 <td style="width: 25%; color: #0088cc;">HSS&S</td>
             </tr>
@@ -103,30 +103,31 @@
         }
     });
 
-    // Função para converter a logo em Base64 para o PDF
-    function getBase64Image(img) {
-        var canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        return canvas.toDataURL("image/png");
+    // Função para garantir que a logo seja carregada corretamente
+    async function getLogoBase64(url) {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
     }
 
-    document.getElementById('hSEForm').addEventListener('submit', function(e) {
+    document.getElementById('hSEForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        const logo = document.getElementById('logoImg');
 
+        // Carrega a logo antes de desenhar
         try {
-            const logoBase64 = getBase64Image(logo);
-            doc.addImage(logoBase64, 'PNG', 15, 12, 35, 15);
-        } catch (e) { console.error("Erro na logo:", e); }
+            const logoBase64 = await getLogoBase64('logo-elecnor.png');
+            doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
+        } catch (err) { console.warn("Logo não encontrada, gerando PDF sem ela."); }
 
-        // Desenho do PDF
+        // --- ESTRUTURA A4 ---
         doc.setLineWidth(0.5);
-        doc.rect(10, 10, 190, 25); 
+        doc.rect(10, 10, 190, 25); // Borda do cabeçalho
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
         
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
@@ -142,21 +143,29 @@
         doc.setFontSize(8);
         doc.text("FECHA: " + document.getElementById('fecha').value, 12, 50);
         doc.text("HORA: " + document.getElementById('hora').value, 107, 50);
-        doc.text("DEPTO: " + document.getElementById('depto').value, 12, 68);
+        doc.text("DEPARTAMENTO: " + document.getElementById('depto').value, 12, 68);
         
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
-        doc.text("ÁREAS: " + areas, 107, 68);
+        doc.text("ÁREAS ESPECÍFICAS: " + areas, 107, 68);
 
         doc.setFillColor(203, 213, 224); doc.rect(10, 73, 190, 8, 'F'); doc.rect(10, 73, 190, 8);
-        doc.text("2. DESCRIPCIÓN", 15, 79);
-        doc.rect(10, 81, 190, 40);
+        doc.text("2. DESCRIPCIÓN DO EVENTO", 15, 79);
+        doc.rect(10, 81, 190, 50);
         doc.setFont("helvetica", "normal");
         doc.text(doc.splitTextToSize(document.getElementById('desc').value, 180), 12, 88);
 
+        doc.setFillColor(203, 213, 224); doc.rect(10, 131, 190, 8, 'F'); doc.rect(10, 131, 190, 8);
+        doc.setFont("helvetica", "bold"); doc.text("4. IDENTIFICACIÓN", 15, 137);
+        doc.rect(10, 139, 190, 15); doc.line(105, 139, 105, 154);
+        doc.text("NARRADOR: " + (document.getElementById('narrador').value || "N/A"), 12, 148);
+        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 107, 148);
+
+        // Página 2 para a Foto
         if (preview.style.display === 'block') {
             doc.addPage();
-            doc.text("3. REGISTRO FOTOGRÁFICO", 15, 20);
-            doc.addImage(preview.src, 'JPEG', 15, 30, 180, 120);
+            doc.setFillColor(203, 213, 224); doc.rect(10, 10, 190, 8, 'F'); doc.rect(10, 10, 190, 8);
+            doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO", 15, 16);
+            doc.addImage(preview.src, 'JPEG', 15, 25, 180, 120);
         }
 
         doc.save(`Reporte_HSE_${document.getElementById('fecha').value}.pdf`);
