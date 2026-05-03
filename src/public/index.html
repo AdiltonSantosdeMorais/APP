@@ -2,28 +2,68 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HSE Elecnor - Copiapó Solar</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 10px; display: flex; justify-content: center; }
-        .app-container { background: white; width: 100%; max-width: 800px; border: 2px solid #000; box-sizing: border-box; }
-        .header-table { width: 100%; border-collapse: collapse; }
-        .header-table td { border: 1px solid #000; text-align: center; padding: 8px; font-weight: bold; font-size: 13px; }
-        .section-header { background: var(--gray); border: 1px solid #000; padding: 5px 10px; font-weight: bold; font-size: 12px; }
-        .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
-        .cell { border-right: 1px solid #000; padding: 8px; display: flex; flex-direction: column; flex: 1; min-width: 120px; }
-        .cell:last-child { border-right: none; }
-        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: var(--blue); }
-        input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; }
+        
+        /* Ajuste para ocupar a tela inteira sem sobras */
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f0f2f5; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center;
+            width: 100vw;
+        }
 
-        /* Grade de Checkboxes das Áreas */
-        .area-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 5px; }
+        .app-container { 
+            background: white; 
+            width: 100%; 
+            max-width: 100%; /* Garante que ocupe a largura do dispositivo */
+            min-height: 100vh;
+            border: none; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        form { flex: 1; display: flex; flex-direction: column; }
+
+        .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 11px; overflow: hidden; }
+        
+        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px; font-weight: bold; font-size: 12px; }
+        
+        .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
+        .cell { border-right: 1px solid #000; padding: 8px; display: flex; flex-direction: column; flex: 1; min-width: 120px; box-sizing: border-box; }
+        .cell:last-child { border-right: none; }
+        
+        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: var(--blue); }
+        input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; }
+
+        /* Área de Checkboxes */
+        .area-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 5px; width: 100%; box-sizing: border-box; }
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
         .check-item input { width: auto; margin-right: 5px; }
 
-        button { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; border-top: 2px solid #000; }
+        /* Estilização do Upload de Foto */
+        .photo-upload { padding: 10px; border: 2px dashed var(--gray); margin: 10px; text-align: center; border-radius: 5px; }
+        #preview { width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; display: none; border-radius: 5px; }
+
+        .btn-submit { 
+            background: var(--blue); 
+            color: white; 
+            border: none; 
+            padding: 20px; 
+            width: 100%; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin-top: auto; /* Fixa o botão no final se o conteúdo for pequeno */
+        }
     </style>
 </head>
 <body>
@@ -32,36 +72,33 @@
     <form id="hSEForm">
         <table class="header-table">
             <tr>
-                <td style="width: 25%;"><img src="logo-elecnor.png" width="100"></td>
+                <td style="width: 25%;"><img src="logo-elecnor.png" width="80" alt="Elecnor"></td>
                 <td style="width: 50%;">Formulario de Reporte de Cuasi Accidente<br>Copiapó Solar</td>
                 <td style="width: 25%; color: #0088cc;">HSS&S</td>
             </tr>
         </table>
 
-        <div class="section-header">1. ANTECEDENTES</div>
+        <div class="section-header">1. CONTEXTO</div>
         <div class="row">
             <div class="cell"><label>FECHA:</label><input type="date" id="fecha" required></div>
             <div class="cell"><label>HORA:</label><input type="time" id="hora" required></div>
         </div>
         <div class="row">
-            <div class="cell" style="flex: 2;">
+            <div class="cell" style="flex: 1.2;">
                 <label>DEPARTAMENTO / ÁREA:</label>
                 <select id="departamento" required>
                     <option value="">Seleccione...</option>
-                    <option value="H&S">H&S</option>
                     <option value="ADM/RRHH">ADM/RRHH</option>
                     <option value="CALIDAD">CALIDAD</option>
                     <option value="CIVIL">CIVIL</option>
                     <option value="ELECTRICA">ELECTRICA</option>
-                    <option value="INGENIERIA">INGENIERIA</option>
-                    <option value="FLOTA">FLOTA</option>
+                    <option value="H&S">H&S</option>
                     <option value="LOGISTICA">LOGISTICA</option>
                     <option value="MEDIO AMBIENTE">MEDIO AMBIENTE</option>
-                    <option value="ANONIMO">ANONIMO</option>
                 </select>
             </div>
-            <div class="cell" style="flex: 3;">
-                <label>ÁREA ESPECÍFICA (Checkboxes):</label>
+            <div class="cell" style="flex: 2;">
+                <label>ÁREA ESPECÍFICA:</label>
                 <div class="area-grid">
                     <div class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</div>
                     <div class="check-item"><input type="checkbox" name="area" value="PV"> PV</div>
@@ -69,36 +106,79 @@
                     <div class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</div>
                     <div class="check-item"><input type="checkbox" name="area" value="SEC.P"> SE C.P</div>
                     <div class="check-item"><input type="checkbox" name="area" value="SEELE"> SE ELE</div>
-                    <div class="check-item"><input type="checkbox" name="area" value="OT"> OT</div>
                 </div>
             </div>
         </div>
 
         <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
-        <div class="row">
-            <div class="cell"><textarea id="descripcion" rows="5" placeholder="O que aconteceu? O que evitou o acidente?" required></textarea></div>
+        <div class="row" style="border-bottom: none;">
+            <div class="cell">
+                <textarea id="descripcion" rows="4" placeholder="¿Qué pasó? ¿Qué evitó el accidente?" required></textarea>
+            </div>
         </div>
 
-        <div class="section-header">3. IDENTIFICACIÓN</div>
+        <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
+        <div class="photo-upload">
+            <label for="foto" style="cursor:pointer; display:block;">
+                📸 Clique aqui para tirar ou selecionar foto
+            </label>
+            <input type="file" id="foto" accept="image/*" style="display:none;">
+            <img id="preview" alt="Prévia da imagem">
+        </div>
+
+        <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Nombre (Opcional)"></div>
+            <div class="cell"><label>NARRADOR:</label><input type="text" id="relator" placeholder="Nome (Opcional)"></div>
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
         </div>
 
-        <button type="submit">GERAR RELATÓRIO TÉCNICO PDF</button>
+        <button type="submit" class="btn-submit">GERAR RELATÓRIO TÉCNICO PDF</button>
     </form>
 </div>
 
 <script>
+    // Lógica para prévia da imagem
+    const fotoInput = document.getElementById('foto');
+    const previewImg = document.getElementById('preview');
+
+    fotoInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Geração do PDF
     document.getElementById('hSEForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("Reporte Elecnor - Copiapó Solar", 10, 10);
-        doc.text("Fecha: " + document.getElementById('fecha').value, 10, 20);
-        doc.text("Depto: " + document.getElementById('departamento').value, 10, 30);
-        doc.save("Reporte.pdf");
-        alert("PDF Gerado!");
+
+        doc.setFontSize(16);
+        doc.text("Reporte de Cuasi Accidente - Elecnor", 105, 20, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.text(`Fecha: ${document.getElementById('fecha').value} | Hora: ${document.getElementById('hora').value}`, 20, 40);
+        doc.text(`Depto: ${document.getElementById('departamento').value}`, 20, 50);
+        doc.text(`Supervisor: ${document.getElementById('supervisor').value}`, 20, 60);
+        
+        doc.text("Descripcion:", 20, 80);
+        doc.text(document.getElementById('descripcion').value, 20, 85, { maxWidth: 170 });
+
+        // Adiciona foto ao PDF se houver
+        if (previewImg.style.display === 'block') {
+            doc.addPage();
+            doc.text("Registro Fotografico:", 20, 20);
+            doc.addImage(previewImg.src, 'JPEG', 20, 30, 170, 120);
+        }
+
+        doc.save("Reporte_Elecnor.pdf");
+        alert("¡Reporte generado con éxito!");
     });
 </script>
 </body>
