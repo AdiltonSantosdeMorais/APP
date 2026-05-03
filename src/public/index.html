@@ -7,63 +7,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; width: 100vw; display: flex; justify-content: center; }
+        .app-container { background: white; width: 100%; max-width: 1000px; min-height: 100vh; border: 1px solid #000; box-sizing: border-box; display: flex; flex-direction: column; }
         
-        /* Ajuste para ocupar a tela inteira sem sobras */
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #f0f2f5; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center;
-            width: 100vw;
-        }
-
-        .app-container { 
-            background: white; 
-            width: 100%; 
-            max-width: 100%; /* Garante que ocupe a largura do dispositivo */
-            min-height: 100vh;
-            border: none; 
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
-
-        form { flex: 1; display: flex; flex-direction: column; }
-
+        /* Tabela de Cabeçalho */
         .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 11px; overflow: hidden; }
+        .header-table td { border: 1px solid #000; text-align: center; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: middle; }
         
-        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px; font-weight: bold; font-size: 12px; }
+        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 15px; font-weight: bold; font-size: 13px; text-transform: uppercase; }
         
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
-        .cell { border-right: 1px solid #000; padding: 8px; display: flex; flex-direction: column; flex: 1; min-width: 120px; box-sizing: border-box; }
+        .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 150px; box-sizing: border-box; }
         .cell:last-child { border-right: none; }
         
-        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: var(--blue); }
+        label { font-size: 10px; font-weight: bold; margin-bottom: 5px; color: var(--blue); text-transform: uppercase; }
         input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; }
 
-        /* Área de Checkboxes */
-        .area-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 5px; width: 100%; box-sizing: border-box; }
-        .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
-        .check-item input { width: auto; margin-right: 5px; }
+        /* Área Específica Checkboxes */
+        .area-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 5px; width: 100%; }
+        .check-item { display: flex; align-items: center; font-size: 11px; font-weight: bold; }
+        .check-item input { width: auto; margin-right: 8px; }
 
-        /* Estilização do Upload de Foto */
-        .photo-upload { padding: 10px; border: 2px dashed var(--gray); margin: 10px; text-align: center; border-radius: 5px; }
-        #preview { width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; display: none; border-radius: 5px; }
+        /* Upload de Foto */
+        .photo-upload { padding: 20px; border: 2px dashed var(--gray); margin: 15px; text-align: center; border-radius: 5px; cursor: pointer; }
+        #preview { width: 100%; max-height: 250px; object-fit: contain; margin-top: 15px; display: none; }
 
-        .btn-submit { 
-            background: var(--blue); 
-            color: white; 
-            border: none; 
-            padding: 20px; 
-            width: 100%; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 16px; 
-            margin-top: auto; /* Fixa o botão no final se o conteúdo for pequeno */
-        }
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 25px; width: 100%; font-weight: bold; cursor: pointer; font-size: 18px; text-transform: uppercase; margin-top: auto; }
     </style>
 </head>
 <body>
@@ -72,9 +41,9 @@
     <form id="hSEForm">
         <table class="header-table">
             <tr>
-                <td style="width: 25%;"><img src="logo-elecnor.png" width="80" alt="Elecnor"></td>
-                <td style="width: 50%;">Formulario de Reporte de Cuasi Accidente<br>Copiapó Solar</td>
-                <td style="width: 25%; color: #0088cc;">HSS&S</td>
+                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" width="100"></td>
+                <td style="width: 50%;">Formulario de reporte de cuasi accidente<br>da Copiapó Solar</td>
+                <td style="width: 25%; color: #0088cc; font-size: 16px;">HSS&S</td>
             </tr>
         </table>
 
@@ -84,9 +53,9 @@
             <div class="cell"><label>HORA:</label><input type="time" id="hora" required></div>
         </div>
         <div class="row">
-            <div class="cell" style="flex: 1.2;">
+            <div class="cell" style="flex: 1;">
                 <label>DEPARTAMENTO / ÁREA:</label>
-                <select id="departamento" required>
+                <select id="depto" required>
                     <option value="">Seleccione...</option>
                     <option value="ADM/RRHH">ADM/RRHH</option>
                     <option value="CALIDAD">CALIDAD</option>
@@ -94,41 +63,34 @@
                     <option value="ELECTRICA">ELECTRICA</option>
                     <option value="H&S">H&S</option>
                     <option value="LOGISTICA">LOGISTICA</option>
-                    <option value="MEDIO AMBIENTE">MEDIO AMBIENTE</option>
                 </select>
             </div>
             <div class="cell" style="flex: 2;">
                 <label>ÁREA ESPECÍFICA:</label>
                 <div class="area-grid">
-                    <div class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</div>
-                    <div class="check-item"><input type="checkbox" name="area" value="PV"> PV</div>
-                    <div class="check-item"><input type="checkbox" name="area" value="BESS"> BESS</div>
-                    <div class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</div>
-                    <div class="check-item"><input type="checkbox" name="area" value="SEC.P"> SE C.P</div>
-                    <div class="check-item"><input type="checkbox" name="area" value="SEELE"> SE ELE</div>
+                    <label class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="PV"> PV</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="BESS"> BESS</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="SE C.P"> SE C.P</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="SE ELE"> SE ELE</label>
                 </div>
             </div>
         </div>
 
         <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
-        <div class="row" style="border-bottom: none;">
-            <div class="cell">
-                <textarea id="descripcion" rows="4" placeholder="¿Qué pasó? ¿Qué evitó el accidente?" required></textarea>
-            </div>
-        </div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="5" placeholder="¿Qué pasó? ¿Qué evitó el accidente?" required></textarea></div></div>
 
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
-        <div class="photo-upload">
-            <label for="foto" style="cursor:pointer; display:block;">
-                📸 Clique aqui para tirar ou selecionar foto
-            </label>
+        <div class="photo-upload" onclick="document.getElementById('foto').click()">
+            <label>📸 Clique aqui para tirar ou selecionar foto</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
-            <img id="preview" alt="Prévia da imagem">
+            <img id="preview" alt="Evidência">
         </div>
 
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>NARRADOR:</label><input type="text" id="relator" placeholder="Nome (Opcional)"></div>
+            <div class="cell"><label>NARRADOR:</label><input type="text" id="narrador" placeholder="Nome (Opcional)"></div>
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
         </div>
 
@@ -137,48 +99,100 @@
 </div>
 
 <script>
-    // Lógica para prévia da imagem
     const fotoInput = document.getElementById('foto');
-    const previewImg = document.getElementById('preview');
+    const preview = document.getElementById('preview');
 
     fotoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                previewImg.style.display = 'block';
-            }
+            reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
             reader.readAsDataURL(file);
         }
     });
 
-    // Geração do PDF
     document.getElementById('hSEForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = doc.internal.pageSize.getWidth();
 
-        doc.setFontSize(16);
-        doc.text("Reporte de Cuasi Accidente - Elecnor", 105, 20, { align: 'center' });
-        
-        doc.setFontSize(10);
-        doc.text(`Fecha: ${document.getElementById('fecha').value} | Hora: ${document.getElementById('hora').value}`, 20, 40);
-        doc.text(`Depto: ${document.getElementById('departamento').value}`, 20, 50);
-        doc.text(`Supervisor: ${document.getElementById('supervisor').value}`, 20, 60);
-        
-        doc.text("Descripcion:", 20, 80);
-        doc.text(document.getElementById('descripcion').value, 20, 85, { maxWidth: 170 });
+        // --- Função para desenhar cabeçalho idêntico ---
+        const drawLayout = () => {
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            
+            // Retângulo externo do cabeçalho
+            doc.rect(10, 10, 190, 25);
+            doc.line(60, 10, 60, 35); // Divisória logo
+            doc.line(150, 10, 150, 35); // Divisória HSS
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("Formulario de reporte de cuasi accidente", 105, 20, { align: 'center' });
+            doc.text("da Copiapó Solar", 105, 27, { align: 'center' });
+            doc.setTextColor(0, 136, 204);
+            doc.text("HSS&S", 175, 23, { align: 'center' });
+            doc.setTextColor(0);
 
-        // Adiciona foto ao PDF se houver
-        if (previewImg.style.display === 'block') {
+            // Seção 1: Contexto
+            doc.setFillColor(203, 213, 224);
+            doc.rect(10, 35, 190, 8, 'F');
+            doc.rect(10, 35, 190, 8);
+            doc.text("1. CONTEXTO", 15, 41);
+
+            // Linhas dos Antecedentes
+            doc.rect(10, 43, 190, 35); 
+            doc.line(10, 58, 200, 58); // Linha horizontal do meio
+            doc.line(90, 43, 90, 58); // Divisória Data/Hora
+            doc.line(75, 58, 75, 78); // Divisória Depto/Área
+
+            doc.setFontSize(8);
+            doc.text("DATA:", 12, 48); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('fecha').value, 12, 53);
+            doc.setFont("helvetica", "bold"); doc.text("HORA:", 92, 48); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('hora').value, 92, 53);
+            
+            doc.setFont("helvetica", "bold"); doc.text("DEPARTAMENTO / ÁREA:", 12, 63);
+            doc.setFont("helvetica", "normal"); doc.text(document.getElementById('depto').value, 12, 70);
+
+            doc.setFont("helvetica", "bold"); doc.text("ÁREA ESPECÍFICA:", 77, 63);
+            const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
+            doc.setFont("helvetica", "normal"); doc.text(areas, 77, 70);
+
+            // Seção 2: Descrição
+            doc.setFillColor(203, 213, 224);
+            doc.rect(10, 78, 190, 8, 'F');
+            doc.rect(10, 78, 190, 8);
+            doc.setFont("helvetica", "bold"); doc.text("2. DESCRIPCIÓN DO EVENTO", 15, 84);
+            
+            doc.rect(10, 86, 190, 40);
+            doc.setFont("helvetica", "normal");
+            doc.text(doc.splitTextToSize(document.getElementById('desc').value, 180), 12, 92);
+
+            // Seção 4: Identificação (Pulando a 3 para o final se houver foto)
+            doc.setFillColor(203, 213, 224);
+            doc.rect(10, 126, 190, 8, 'F');
+            doc.rect(10, 126, 190, 8);
+            doc.setFont("helvetica", "bold"); doc.text("4. IDENTIFICACIÓN", 15, 132);
+
+            doc.rect(10, 134, 190, 15);
+            doc.line(100, 134, 100, 149);
+            doc.text("NARRADOR:", 12, 139); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('narrador').value || "Não informado", 12, 144);
+            doc.setFont("helvetica", "bold"); doc.text("SUPERVISOR:", 102, 139); doc.setFont("helvetica", "normal"); doc.text(document.getElementById('supervisor').value, 102, 144);
+        };
+
+        drawLayout();
+
+        // Adicionar Foto se houver
+        if (preview.style.display === 'block') {
             doc.addPage();
-            doc.text("Registro Fotografico:", 20, 20);
-            doc.addImage(previewImg.src, 'JPEG', 20, 30, 170, 120);
+            doc.setFillColor(203, 213, 224);
+            doc.rect(10, 10, 190, 8, 'F');
+            doc.rect(10, 10, 190, 8);
+            doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO", 15, 16);
+            doc.addImage(preview.src, 'JPEG', 15, 25, 180, 120);
         }
 
-        doc.save("Reporte_Elecnor.pdf");
-        alert("¡Reporte generado con éxito!");
+        doc.save(`Reporte_HSE_${document.getElementById('fecha').value}.pdf`);
     });
 </script>
 </body>
