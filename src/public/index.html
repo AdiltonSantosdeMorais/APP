@@ -86,6 +86,8 @@
 <script>
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
+    
+    // Preview de Imagem
     fotoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -95,6 +97,7 @@
         }
     });
 
+    // Função Logo Base64
     async function getLogoBase64(url) {
         try {
             const response = await fetch(url);
@@ -107,6 +110,7 @@
         } catch (e) { return null; }
     }
 
+    // Gerador de PDF A4
     document.getElementById('hSEForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const { jsPDF } = window.jspdf;
@@ -158,18 +162,28 @@
         doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
     });
 
-    // --- SERVICE WORKER E PROMPT DE INSTALAÇÃO ---
+    // --- REGISTRO SERVICE WORKER E AUTO-UPDATE ---
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js');
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        window.location.reload();
+                    }
+                });
+            });
+        });
     }
 
+    // Prompt de Instalação
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
         const installMsg = document.createElement('div');
         installMsg.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--blue); color:white; padding:15px; border-radius:8px; z-index:1000; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); width:90%;";
-        installMsg.innerHTML = "<strong>¿Instalar App Elecnor?</strong><br><small>Para uso rápido y offline</small><br><button id='btnInstall' style='margin-top:10px; padding:8px 20px; border:none; border-radius:5px; background:white; color:var(--blue); font-weight:bold;'>INSTALAR AHORA</button>";
+        installMsg.innerHTML = "<strong>¿Instalar App Elecnor?</strong><br><small>Uso rápido e offline</small><br><button id='btnInstall' style='margin-top:10px; padding:8px 20px; border:none; border-radius:5px; background:white; color:var(--blue); font-weight:bold;'>INSTALAR AHORA</button>";
         document.body.appendChild(installMsg);
         document.getElementById('btnInstall').addEventListener('click', async () => {
             if (deferredPrompt) {
