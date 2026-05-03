@@ -1,11 +1,13 @@
 {
-  "name": "elecnor-backend",
+  "name": "elecnor-app",
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "nodemailer": "^6.9.7",
+    "jspdf": "^2.5.1"
   }
 }

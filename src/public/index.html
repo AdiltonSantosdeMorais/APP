@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REPORTE DE INCIDENTE - ELECNOR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; text-align: center; }
@@ -27,37 +28,57 @@
             </div>
             <div class="form-group">
                 <label for="unidad">Unidad / Localización</label>
-                <input type="text" id="unidad" name="unidad" placeholder="Ej: SE Copiapó" required>
+                <input type="text" id="unidad" name="unidad" required>
             </div>
             <div class="form-group">
                 <label for="descripcion">Descripción del Riesgo</label>
-                <textarea id="descripcion" name="descripcion" rows="4" placeholder="Describa el riesgo observado..." required></textarea>
+                <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
             </div>
             <div class="form-group">
-                <label for="foto">Anexar Foto de Evidencia</label>
-                <input type="file" id="foto" accept="image/*">
+                <label for="nombre">Nombre do Relator (Obligatorio)</label>
+                <input type="text" id="nombre" name="nombre" required>
             </div>
-            <div class="form-group">
-                <label for="nombre">Nombre del Relator (Obligatorio)</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Su nombre completo" required>
-            </div>
-            <button type="submit">ENVIAR REPORTE</button>
+            <button type="submit">ENVIAR Y DESCARGAR PDF</button>
         </form>
     </div>
 
     <script>
         document.getElementById('relatoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById('nombre').value;
             
-            // Simulação de envio para evitar erros de upload na Vercel Free
-            const response = await fetch('/enviar-relato', {
+            // Coleta os dados
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const nome = document.getElementById('nombre').value;
+            const data = document.getElementById('fecha').value;
+            const unidade = document.getElementById('unidad').value;
+            const desc = document.getElementById('descripcion').value;
+
+            // Criando o PDF visualmente
+            doc.setFontSize(20);
+            doc.setTextColor(0, 51, 102);
+            doc.text("REPORTE DE SEGURIDAD - ELECNOR", 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Relator: ${nome}`, 20, 40);
+            doc.text(`Fecha: ${data}`, 20, 50);
+            doc.text(`Unidad: ${unidade}`, 20, 60);
+            doc.text("Descripcion:", 20, 80);
+            doc.setFontSize(10);
+            doc.text(desc, 20, 90, { maxWidth: 170 });
+
+            // 1. Baixa o PDF no dispositivo
+            doc.save(`Reporte_${unidade}.pdf`);
+
+            // 2. Avisa o servidor (opcional, para você ver no console da Vercel)
+            await fetch('/enviar-relato', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre: nombre })
+                body: JSON.stringify({ nombre: nome })
             });
-            const result = await response.json();
-            alert(result.mensagem);
+
+            alert("✅ Reporte enviado y PDF descargado!");
             e.target.reset();
         });
     </script>
