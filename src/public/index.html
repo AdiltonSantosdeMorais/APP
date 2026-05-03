@@ -4,106 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório Elecnor Chile</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#003366">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
-        .logo { width: 150px; }
+        
+        /* Cabeçalho igual à imagem: Logo esquerda, Título direita */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; gap: 20px; }
+        .logo { width: 140px; }
         .header-title { color: #003366; font-size: 14px; text-transform: uppercase; text-align: right; font-weight: bold; flex: 1; }
+        
         hr { border: 0; border-top: 1px solid #eee; margin-bottom: 20px; }
+        
         .form-group { text-align: left; margin-bottom: 15px; display: flex; flex-direction: column; }
         label { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
         input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; text-transform: uppercase; }
+        input:focus, textarea:focus { border-color: #003366; outline: none; }
+        
+        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; text-transform: uppercase; transition: 0.3s; }
+        button:hover { background-color: #002244; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img id="logoImg" src="logo-elecnor.png" alt="Elecnor Chile" class="logo">
-            <div class="header-title">RELATÓRIO DE QUASE ACIDENTE / CONDICÃO INSEGURA</div>
+            <div class="header-title">
+                RELATÓRIO DE QUASE ACIDENTE /<br>CONDICÃO INSEGURA
+            </div>
         </div>
+        
         <hr>
+        
         <form id="relatoForm">
             <div class="form-group">
-                <label>Data e hora</label>
+                <label for="fecha">Data e hora</label>
                 <input type="datetime-local" id="fecha" required>
             </div>
+            
             <div class="form-group">
-                <label>Unidade/Localização</label>
+                <label for="unidad">Unidade/Localização</label>
                 <input type="text" id="unidad" placeholder="Ex: SE Copiapó" required>
             </div>
+            
             <div class="form-group">
-                <label>Descrição do risco</label>
-                <textarea id="descripcion" rows="4" required></textarea>
+                <label for="descripcion">Descrição do risco</label>
+                <textarea id="descripcion" rows="4" placeholder="Detalhe a situação observada..." required></textarea>
             </div>
+            
             <div class="form-group">
-                <label>Anexe provas fotográficas</label>
+                <label for="foto">Anexe provas fotográficas</label>
                 <input type="file" id="foto" accept="image/*">
             </div>
+            
             <div class="form-group">
-                <label>Nome do Relator</label>
-                <input type="text" id="nombre" required>
+                <label for="nombre">Nome do Relator (Obrigatório)</label>
+                <input type="text" id="nombre" placeholder="Seu nome completo" required>
             </div>
-            <button type="submit">GERAR RELATÓRIO E BAIXAR PDF</button>
+            
+            <button type="submit" id="btnSubmit">GERAR RELATÓRIO E BAIXAR PDF</button>
         </form>
     </div>
 
     <script>
+        // Registro do Service Worker para funcionamento Offline
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => console.log("SW Erro:", err));
+        }
+
         document.getElementById('relatoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
-            const imgLogo = document.getElementById('logoImg');
+            
+            // Captura de dados
+            const logo = document.getElementById('logoImg');
             const fecha = document.getElementById('fecha').value;
             const unidad = document.getElementById('unidad').value;
             const desc = document.getElementById('descripcion').value;
             const nombre = document.getElementById('nombre').value;
             const fotoInput = document.getElementById('foto');
 
-            // 1. Cabeçalho do PDF (Igual ao formulário)
-            doc.addImage(imgLogo, 'PNG', 15, 10, 45, 20); 
-            doc.setFontSize(12);
+            // --- Gerando o Layout do PDF (Igual ao App) ---
+            // Logo e Título
+            doc.addImage(logo, 'PNG', 15, 10, 40, 18);
+            doc.setFontSize(11);
             doc.setTextColor(0, 51, 102);
             doc.setFont("helvetica", "bold");
-            doc.text("RELATÓRIO DE QUASE ACIDENTE /\nCONDICÃO INSEGURA", 195, 18, { align: 'right' });
+            doc.text("RELATÓRIO DE QUASE ACIDENTE / \nCONDICÃO INSEGURA", 195, 18, { align: 'right' });
             
-            doc.setDrawColor(238, 238, 238);
-            doc.line(15, 35, 195, 35); // Linha HR
+            // Linha divisória
+            doc.setDrawColor(220, 220, 220);
+            doc.line(15, 32, 195, 32);
 
-            // 2. Dados do Formulário
+            // Conteúdo
             doc.setFontSize(10);
-            doc.setTextColor(50, 50, 50);
+            doc.setTextColor(0, 0, 0);
             
-            doc.setFont("helvetica", "bold"); doc.text("Data e hora:", 15, 45);
-            doc.setFont("helvetica", "normal"); doc.text(fecha, 15, 50);
+            doc.setFont("helvetica", "bold"); doc.text("Data e hora:", 15, 42);
+            doc.setFont("helvetica", "normal"); doc.text(fecha.replace('T', ' '), 15, 47);
 
-            doc.setFont("helvetica", "bold"); doc.text("Unidade/Localização:", 15, 60);
-            doc.setFont("helvetica", "normal"); doc.text(unidad, 15, 65);
+            doc.setFont("helvetica", "bold"); doc.text("Unidade/Localização:", 15, 57);
+            doc.setFont("helvetica", "normal"); doc.text(unidad, 15, 62);
 
-            doc.setFont("helvetica", "bold"); doc.text("Descrição do risco:", 15, 75);
+            doc.setFont("helvetica", "bold"); doc.text("Descrição do risco:", 15, 72);
             doc.setFont("helvetica", "normal");
-            doc.text(desc, 15, 80, { maxWidth: 180 });
+            doc.text(desc, 15, 77, { maxWidth: 180 });
 
             doc.setFont("helvetica", "bold"); doc.text("Nome do Relator:", 15, 110);
             doc.setFont("helvetica", "normal"); doc.text(nombre, 15, 115);
 
-            // 3. Foto (se houver)
+            // Inserir Foto se houver
             if (fotoInput.files && fotoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    doc.setFont("helvetica", "bold"); doc.text("Provas fotográficas:", 15, 125);
+                    doc.setFont("helvetica", "bold"); doc.text("Prova Fotográfica:", 15, 125);
                     doc.addImage(event.target.result, 'JPEG', 15, 130, 90, 65);
-                    doc.save(`Relatorio_${unidad}.pdf`);
+                    finalizar();
                 };
                 reader.readAsDataURL(fotoInput.files[0]);
             } else {
-                doc.save(`Relatorio_${unidad}.pdf`);
+                finalizar();
             }
-            
-            alert("PDF gerado com o mesmo layout do formulário!");
+
+            function finalizar() {
+                doc.save(`Relatorio_Elecnor_${unidad}.pdf`);
+                alert("✅ Sucesso! Relatório gerado e PDF baixado.");
+                
+                // Envio para o servidor (Opcional - registro em log)
+                fetch('/enviar-relato', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, unidad })
+                });
+
+                e.target.reset();
+            }
         });
     </script>
 </body>
