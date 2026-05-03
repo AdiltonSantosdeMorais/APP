@@ -8,59 +8,44 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; }
-        
-        /* Ajuste do Cabeçalho com Logo à Esquerda */
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
         .logo { width: 150px; }
-        .header-title { color: #003366; font-size: 16px; text-transform: uppercase; text-align: right; font-weight: bold; flex: 1; }
-        
+        .header-title { color: #003366; font-size: 14px; text-transform: uppercase; text-align: right; font-weight: bold; flex: 1; }
         hr { border: 0; border-top: 1px solid #eee; margin-bottom: 20px; }
-        
         .form-group { text-align: left; margin-bottom: 15px; display: flex; flex-direction: column; }
         label { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
         input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
-        
-        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background-color: #002244; }
+        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <img src="logo-elecnor.png" alt="Elecnor Chile" class="logo">
-            <div class="header-title">
-                RELATÓRIO DE QUASE ACIDENTE / CONDICÃO INSEGURA
-            </div>
+            <img id="logoImg" src="logo-elecnor.png" alt="Elecnor Chile" class="logo">
+            <div class="header-title">RELATÓRIO DE QUASE ACIDENTE / CONDICÃO INSEGURA</div>
         </div>
-        
         <hr>
-        
         <form id="relatoForm">
             <div class="form-group">
-                <label for="fecha">Data e hora</label>
-                <input type="datetime-local" id="fecha" name="fecha" required>
+                <label>Data e hora</label>
+                <input type="datetime-local" id="fecha" required>
             </div>
-            
             <div class="form-group">
-                <label for="unidad">Unidade/Localização</label>
-                <input type="text" id="unidad" name="unidad" placeholder="Ex: SE Copiapó" required>
+                <label>Unidade/Localização</label>
+                <input type="text" id="unidad" placeholder="Ex: SE Copiapó" required>
             </div>
-            
             <div class="form-group">
-                <label for="descripcion">Descrição do risco</label>
-                <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
+                <label>Descrição do risco</label>
+                <textarea id="descripcion" rows="4" required></textarea>
             </div>
-            
             <div class="form-group">
-                <label for="foto">Anexe provas fotográficas</label>
+                <label>Anexe provas fotográficas</label>
                 <input type="file" id="foto" accept="image/*">
             </div>
-            
             <div class="form-group">
-                <label for="nombre">Nome do Relator (Obrigatório)</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Seu nome completo" required>
+                <label>Nome do Relator</label>
+                <input type="text" id="nombre" required>
             </div>
-            
             <button type="submit">GERAR RELATÓRIO E BAIXAR PDF</button>
         </form>
     </div>
@@ -68,50 +53,57 @@
     <script>
         document.getElementById('relatoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
-            const nombre = document.getElementById('nombre').value;
+
+            const imgLogo = document.getElementById('logoImg');
             const fecha = document.getElementById('fecha').value;
             const unidad = document.getElementById('unidad').value;
             const desc = document.getElementById('descripcion').value;
+            const nombre = document.getElementById('nombre').value;
             const fotoInput = document.getElementById('foto');
 
-            // --- Título do PDF ---
-            doc.setFontSize(16);
-            doc.setTextColor(0, 51, 102);
-            doc.text("RELATÓRIO DE QUASE ACIDENTE", 105, 20, { align: 'center' });
-            
+            // 1. Cabeçalho do PDF (Igual ao formulário)
+            doc.addImage(imgLogo, 'PNG', 15, 10, 45, 20); 
             doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Data/Hora: ${fecha}`, 20, 40);
-            doc.text(`Unidade: ${unidad}`, 20, 50);
-            doc.text(`Relator: ${nombre}`, 20, 60);
-            
+            doc.setTextColor(0, 51, 102);
             doc.setFont("helvetica", "bold");
-            doc.text("Descrição do Risco:", 20, 80);
-            doc.setFont("helvetica", "normal");
-            doc.text(desc, 20, 90, { maxWidth: 170 });
+            doc.text("RELATÓRIO DE QUASE ACIDENTE /\nCONDICÃO INSEGURA", 195, 18, { align: 'right' });
+            
+            doc.setDrawColor(238, 238, 238);
+            doc.line(15, 35, 195, 35); // Linha HR
 
-            // Inserir foto no PDF se existir
+            // 2. Dados do Formulário
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            
+            doc.setFont("helvetica", "bold"); doc.text("Data e hora:", 15, 45);
+            doc.setFont("helvetica", "normal"); doc.text(fecha, 15, 50);
+
+            doc.setFont("helvetica", "bold"); doc.text("Unidade/Localização:", 15, 60);
+            doc.setFont("helvetica", "normal"); doc.text(unidad, 15, 65);
+
+            doc.setFont("helvetica", "bold"); doc.text("Descrição do risco:", 15, 75);
+            doc.setFont("helvetica", "normal");
+            doc.text(desc, 15, 80, { maxWidth: 180 });
+
+            doc.setFont("helvetica", "bold"); doc.text("Nome do Relator:", 15, 110);
+            doc.setFont("helvetica", "normal"); doc.text(nombre, 15, 115);
+
+            // 3. Foto (se houver)
             if (fotoInput.files && fotoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    const imgData = event.target.result;
-                    doc.addImage(imgData, 'JPEG', 20, 110, 100, 75);
-                    finalizar();
+                    doc.setFont("helvetica", "bold"); doc.text("Provas fotográficas:", 15, 125);
+                    doc.addImage(event.target.result, 'JPEG', 15, 130, 90, 65);
+                    doc.save(`Relatorio_${unidad}.pdf`);
                 };
                 reader.readAsDataURL(fotoInput.files[0]);
             } else {
-                finalizar();
-            }
-
-            function finalizar() {
                 doc.save(`Relatorio_${unidad}.pdf`);
-                alert("✅ Relatório gerado com sucesso!");
-                e.target.reset();
             }
+            
+            alert("PDF gerado com o mesmo layout do formulário!");
         });
     </script>
 </body>
