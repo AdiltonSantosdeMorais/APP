@@ -6,14 +6,15 @@
     <title>REPORTE DE INCIDENTE - ELECNOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; text-align: center; }
         .logo { width: 180px; margin-bottom: 20px; }
         h2 { color: #003366; font-size: 18px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .form-group { text-align: left; margin-bottom: 15px; display: flex; flex-direction: column; }
         label { font-size: 13px; font-weight: bold; color: #444; margin-bottom: 5px; }
         input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        button:hover { background-color: #002244; }
     </style>
 </head>
 <body>
@@ -28,17 +29,17 @@
             </div>
             <div class="form-group">
                 <label for="unidad">Unidad / Localización</label>
-                <input type="text" id="unidad" name="unidad" required>
+                <input type="text" id="unidad" name="unidad" placeholder="Ex: SE Copiapó" required>
             </div>
             <div class="form-group">
                 <label for="descripcion">Descripción del Riesgo</label>
-                <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
+                <textarea id="descripcion" name="descripcion" rows="4" placeholder="Detalhe o risco observado..." required></textarea>
             </div>
             <div class="form-group">
-                <label for="nombre">Nombre do Relator (Obligatorio)</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <label for="nombre">Nombre del Relator (Obrigatório)</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Seu nome completo" required>
             </div>
-            <button type="submit">ENVIAR Y DESCARGAR PDF</button>
+            <button type="submit">GERAR REPORTE E BAIXAR PDF</button>
         </form>
     </div>
 
@@ -46,39 +47,42 @@
         document.getElementById('relatoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Coleta os dados
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const nome = document.getElementById('nombre').value;
-            const data = document.getElementById('fecha').value;
-            const unidade = document.getElementById('unidad').value;
+            
+            const nombre = document.getElementById('nombre').value;
+            const fecha = document.getElementById('fecha').value;
+            const unidad = document.getElementById('unidad').value;
             const desc = document.getElementById('descripcion').value;
 
-            // Criando o PDF visualmente
+            // --- Estilização do PDF ---
             doc.setFontSize(20);
-            doc.setTextColor(0, 51, 102);
-            doc.text("REPORTE DE SEGURIDAD - ELECNOR", 105, 20, { align: 'center' });
+            doc.setTextColor(0, 51, 102); // Azul Elecnor
+            doc.text("REPORTE DE INCIDENTE", 105, 20, { align: 'center' });
             
             doc.setFontSize(12);
             doc.setTextColor(0, 0, 0);
-            doc.text(`Relator: ${nome}`, 20, 40);
-            doc.text(`Fecha: ${data}`, 20, 50);
-            doc.text(`Unidad: ${unidade}`, 20, 60);
-            doc.text("Descripcion:", 20, 80);
+            doc.text(`Relator: ${nombre}`, 20, 40);
+            doc.text(`Fecha/Hora: ${fecha}`, 20, 50);
+            doc.text(`Unidad: ${unidad}`, 20, 60);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("Descripción del Riesgo:", 20, 80);
+            doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
             doc.text(desc, 20, 90, { maxWidth: 170 });
 
-            // 1. Baixa o PDF no dispositivo
-            doc.save(`Reporte_${unidade}.pdf`);
+            // 1. Baixa o PDF no dispositivo do usuário
+            doc.save(`Reporte_Elecnor_${unidad}.pdf`);
 
-            // 2. Avisa o servidor (opcional, para você ver no console da Vercel)
+            // 2. Avisa o servidor (apenas para registro)
             await fetch('/enviar-relato', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre: nome })
+                body: JSON.stringify({ nombre, unidad })
             });
 
-            alert("✅ Reporte enviado y PDF descargado!");
+            alert("✅ Reporte registrado! O PDF foi baixado automaticamente.");
             e.target.reset();
         });
     </script>
