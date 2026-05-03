@@ -76,12 +76,13 @@
         </div>
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>NARRADOR:</label><input type="text" id="relator" placeholder="Opcional"></div>
+            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Opcional"></div>
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
         </div>
         <button type="submit" class="btn-submit">GERAR RELATÓRIO PDF</button>
     </form>
 </div>
+
 <script>
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
@@ -157,9 +158,27 @@
         doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
     });
 
+    // --- SERVICE WORKER E PROMPT DE INSTALAÇÃO ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');
     }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installMsg = document.createElement('div');
+        installMsg.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--blue); color:white; padding:15px; border-radius:8px; z-index:1000; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); width:90%;";
+        installMsg.innerHTML = "<strong>¿Instalar App Elecnor?</strong><br><small>Para uso rápido y offline</small><br><button id='btnInstall' style='margin-top:10px; padding:8px 20px; border:none; border-radius:5px; background:white; color:var(--blue); font-weight:bold;'>INSTALAR AHORA</button>";
+        document.body.appendChild(installMsg);
+        document.getElementById('btnInstall').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt = null;
+                installMsg.remove();
+            }
+        });
+    });
 </script>
 </body>
 </html>

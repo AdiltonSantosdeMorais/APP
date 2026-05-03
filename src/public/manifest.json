@@ -1,6 +1,6 @@
 {
-  "name": "Elecnor HSE",
-  "short_name": "Elecnor",
+  "name": "Elecnor HSE Copiapó",
+  "short_name": "Elecnor HSE",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,6 +9,12 @@
     {
       "src": "logo-elecnor.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-elecnor.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
