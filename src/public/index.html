@@ -1,49 +1,67 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REPORTE DE INCIDENTE - ELECNOR</title>
+    <title>Relatório Elecnor Chile</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; text-align: center; }
-        .logo { width: 180px; margin-bottom: 20px; }
-        h2 { color: #003366; font-size: 18px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; border-top: 5px solid #003366; }
+        
+        /* Ajuste do Cabeçalho com Logo à Esquerda */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
+        .logo { width: 150px; }
+        .header-title { color: #003366; font-size: 16px; text-transform: uppercase; text-align: right; font-weight: bold; flex: 1; }
+        
+        hr { border: 0; border-top: 1px solid #eee; margin-bottom: 20px; }
+        
         .form-group { text-align: left; margin-bottom: 15px; display: flex; flex-direction: column; }
-        label { font-size: 13px; font-weight: bold; color: #444; margin-bottom: 5px; }
-        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        label { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 5px; }
+        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        
+        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; text-transform: uppercase; transition: 0.3s; }
         button:hover { background-color: #002244; }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="logo-elecnor.png" alt="Elecnor" class="logo">
-        <h2>REPORTE CUASI ACCIDENTE / CONDICIÓN INSEGURA</h2>
+        <div class="header">
+            <img src="logo-elecnor.png" alt="Elecnor Chile" class="logo">
+            <div class="header-title">
+                RELATÓRIO DE QUASE ACIDENTE / CONDICÃO INSEGURA
+            </div>
+        </div>
+        
+        <hr>
         
         <form id="relatoForm">
             <div class="form-group">
-                <label for="fecha">Fecha y Hora</label>
+                <label for="fecha">Data e hora</label>
                 <input type="datetime-local" id="fecha" name="fecha" required>
             </div>
+            
             <div class="form-group">
-                <label for="unidad">Unidad / Localización</label>
-                <input type="text" id="unidad" name="unidad" required>
+                <label for="unidad">Unidade/Localização</label>
+                <input type="text" id="unidad" name="unidad" placeholder="Ex: SE Copiapó" required>
             </div>
+            
             <div class="form-group">
-                <label for="descripcion">Descripción del Riesgo</label>
+                <label for="descripcion">Descrição do risco</label>
                 <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
             </div>
+            
             <div class="form-group">
-                <label for="foto">Anexar Foto de Evidencia</label>
+                <label for="foto">Anexe provas fotográficas</label>
                 <input type="file" id="foto" accept="image/*">
             </div>
+            
             <div class="form-group">
-                <label for="nombre">Nombre del Relator (Obrigatório)</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <label for="nombre">Nome do Relator (Obrigatório)</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Seu nome completo" required>
             </div>
-            <button type="submit">GERAR REPORTE E BAIXAR PDF</button>
+            
+            <button type="submit">GERAR RELATÓRIO E BAIXAR PDF</button>
         </form>
     </div>
 
@@ -60,37 +78,38 @@
             const desc = document.getElementById('descripcion').value;
             const fotoInput = document.getElementById('foto');
 
-            // Configuração do PDF
-            doc.setFontSize(20);
+            // --- Título do PDF ---
+            doc.setFontSize(16);
             doc.setTextColor(0, 51, 102);
-            doc.text("REPORTE DE INCIDENTE", 105, 20, { align: 'center' });
+            doc.text("RELATÓRIO DE QUASE ACIDENTE", 105, 20, { align: 'center' });
             
             doc.setFontSize(12);
             doc.setTextColor(0, 0, 0);
-            doc.text(`Relator: ${nombre}`, 20, 40);
-            doc.text(`Fecha/Hora: ${fecha}`, 20, 50);
-            doc.text(`Unidad: ${unidad}`, 20, 60);
-            doc.text("Descripción:", 20, 80);
-            doc.setFontSize(10);
+            doc.text(`Data/Hora: ${fecha}`, 20, 40);
+            doc.text(`Unidade: ${unidad}`, 20, 50);
+            doc.text(`Relator: ${nombre}`, 20, 60);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("Descrição do Risco:", 20, 80);
+            doc.setFont("helvetica", "normal");
             doc.text(desc, 20, 90, { maxWidth: 170 });
 
-            // Lógica para incluir a FOTO no PDF se ela existir
+            // Inserir foto no PDF se existir
             if (fotoInput.files && fotoInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const imgData = event.target.result;
-                    // Adiciona a imagem no PDF (X, Y, Largura, Altura)
-                    doc.addImage(imgData, 'JPEG', 20, 120, 80, 60);
-                    finalizarPDF();
+                    doc.addImage(imgData, 'JPEG', 20, 110, 100, 75);
+                    finalizar();
                 };
                 reader.readAsDataURL(fotoInput.files[0]);
             } else {
-                finalizarPDF();
+                finalizar();
             }
 
-            function finalizarPDF() {
-                doc.save(`Reporte_Elecnor_${unidad}.pdf`);
-                alert("✅ Reporte registrado e PDF baixado!");
+            function finalizar() {
+                doc.save(`Relatorio_${unidad}.pdf`);
+                alert("✅ Relatório gerado com sucesso!");
                 e.target.reset();
             }
         });
