@@ -4,43 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HSE Elecnor - Reporte de Cuasi Accidente</title>
-    
     <link rel="manifest" href="/manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <style>
-        :root { --blue-elecnor: #003366; --gray-light: #cbd5e0; --black: #000; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .app-container { background: white; width: 100%; max-width: 800px; border: 2px solid var(--black); box-sizing: border-box; }
-        
-        /* Cabeçalho Triplo */
+        :root { --blue: #003366; --gray: #cbd5e0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 10px; display: flex; justify-content: center; }
+        .app-container { background: white; width: 100%; max-width: 800px; border: 2px solid #000; }
         .header-table { width: 100%; border-collapse: collapse; }
-        .header-table td { border: 1px solid var(--black); text-align: center; padding: 10px; font-weight: bold; font-size: 13px; }
-        .logo-box img { width: 110px; }
-        
-        /* Seções Cinzas */
-        .section-header { background: var(--gray-light); border: 1px solid var(--black); padding: 5px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
-        
-        /* Linhas e Células */
-        .row { display: flex; border-bottom: 1px solid var(--black); width: 100%; flex-wrap: wrap; }
-        .cell { border-right: 1px solid var(--black); padding: 6px; display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+        .header-table td { border: 1px solid #000; text-align: center; padding: 8px; font-weight: bold; font-size: 13px; }
+        .section-header { background: var(--gray); border: 1px solid #000; padding: 5px 10px; font-weight: bold; font-size: 12px; }
+        .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
+        .cell { border-right: 1px solid #000; padding: 6px; display: flex; flex-direction: column; flex: 1; min-width: 120px; }
         .cell:last-child { border-right: none; }
-        
-        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; }
+        label { font-size: 10px; font-weight: bold; margin-bottom: 3px; }
         input, textarea, select { border: none; outline: none; font-size: 13px; background: transparent; width: 100%; }
         
-        /* Estilo das Checkboxes das Áreas */
-        .area-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; padding-top: 5px; }
-        .checkbox-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
-        .checkbox-item input { width: auto; margin-right: 4px; }
+        /* Estilo das Checkboxes */
+        .area-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 5px; }
+        .check-item { display: flex; align-items: center; font-size: 9px; font-weight: bold; }
+        .check-item input { width: auto; margin-right: 3px; }
 
-        /* Assistente de IA */
-        .ia-box { font-size: 10px; color: #0056b3; font-style: italic; margin-top: 5px; border-top: 1px dashed #ccc; padding-top: 3px; }
-        
-        .footer-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; font-size: 9px; border-top: 1px solid var(--black); }
-        
-        button { background: var(--blue-elecnor); color: white; border: none; padding: 18px; width: 100%; font-weight: bold; cursor: pointer; font-size: 15px; border-top: 2px solid var(--black); }
-        button:hover { background: #002244; }
+        button { background: var(--blue); color: white; border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; border-top: 2px solid #000; }
     </style>
 </head>
 <body>
@@ -49,136 +33,96 @@
     <form id="hSEForm">
         <table class="header-table">
             <tr>
-                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" alt="Elecnor"></td>
-                <td style="width: 50%;">Formulario de Reporte de Cuasi Accidente<br>Copiapó Solar</td>
-                <td style="width: 25%; color: #0088cc; font-size: 16px;">HSS&S</td>
+                <td style="width: 20%;"><img src="logo-elecnor.png" width="100"></td>
+                <td>Formulario de Reporte de Cuasi Accidente<br>Copiapó Solar</td>
+                <td style="width: 20%; color: #0088cc;">HSS&S</td>
             </tr>
         </table>
 
-        <div class="section-header">1. ANTECEDENTES DEL EVENTO</div>
+        <div class="section-header">1. ANTECEDENTES</div>
         <div class="row">
-            <div class="cell" style="flex: 2;"><label>Fecha:</label><input type="date" id="fecha" required></div>
+            <div class="cell"><label>Fecha:</label><input type="date" id="fecha" required></div>
             <div class="cell"><label>Hora:</label><input type="time" id="hora" required></div>
-        </div>
-        <div class="row">
-            <div class="cell"><label>Empresa:</label><input type="text" id="empresa" placeholder="Elecnor o Contratista" required></div>
-        </div>
-        <div class="row">
-            <div class="cell" style="flex: 1.5;"><label>Ubicación Específica:</label><input type="text" id="ubicacion_det" placeholder="Ej: Torre 45 / Camino Acceso" required></div>
             <div class="cell" style="flex: 2;">
-                <label>Área:</label>
+                <label>Departamento/Área (da imagem):</label>
+                <select id="departamento">
+                    <option value="H&S">H&S</option>
+                    <option value="ADM/RRHH">ADM/RRHH</option>
+                    <option value="CALIDAD">CALIDAD</option>
+                    <option value="CIVIL">CIVIL</option>
+                    <option value="ELECTRICA">ELECTRICA</option>
+                    <option value="INGENIERIA">INGENIERIA</option>
+                    <option value="FLOTA">FLOTA</option>
+                    <option value="LOGISTICA">LOGISTICA</option>
+                    <option value="MEDIO AMBIENTE">MEDIO AMBIENTE</option>
+                    <option value="ANONIMO">ANONIMO</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="cell">
+                <label>Área Específica (Marque as opções):</label>
                 <div class="area-grid">
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="IIFF"> IIFF</div>
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="PV"> PV</div>
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="BESS"> BESS</div>
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="LAT"> LAT</div>
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="SEC.P"> SE C.P</div>
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="SEELE"> SE ELE</div>
-                    <div class="checkbox-item"><input type="checkbox" name="area" value="OT"> OT</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="PV"> PV</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="BESS"> BESS</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="SEC.P"> SE C.P</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="SEELE"> SE ELE</div>
+                    <div class="check-item"><input type="checkbox" name="area" value="OT"> OT</div>
                 </div>
             </div>
         </div>
 
-        <div class="section-header">2. DESCRIPCIÓN (¿Qué pasó? ¿Qué evitó o accidente?)</div>
+        <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
         <div class="row">
-            <div class="cell">
-                <textarea id="descripcion" rows="5" placeholder="Descreva o evento..." oninput="iaAnalyze()" required></textarea>
-                <div id="ia-msg" class="ia-box">IA: Aguardando descrição para análise de risco...</div>
-            </div>
+            <div class="cell"><textarea id="descripcion" rows="4" placeholder="O que aconteceu?" required></textarea></div>
         </div>
 
-        <div class="section-header">3. REGISTRO FOTOGRÁFICO / CROQUIS</div>
+        <div class="section-header">3. EVIDÊNCIA FOTOGRÁFICA</div>
         <div class="row">
-            <div class="cell">
-                <input type="file" id="foto" accept="image/*">
-                <div style="height: 40px; display: flex; align-items: center; justify-content: center; border: 1px dashed #ccc; margin-top: 5px; color: #aaa; font-size: 11px;">
-                    Anexe foto ou croqui de evidência
-                </div>
-            </div>
+            <div class="cell"><input type="file" id="foto" accept="image/*"></div>
         </div>
 
-        <div class="section-header">4. ACCIÓN INMEDIATA REALIZADA</div>
+        <div class="section-header">4. PESSOA QUE REPORTA / SUPERVISOR</div>
         <div class="row">
-            <div class="cell"><textarea id="accion" rows="2" required></textarea></div>
+            <div class="cell"><label>Nombre Relator:</label><input type="text" id="relator"></div>
+            <div class="cell"><label>Supervisor:</label><input type="text" id="supervisor" required></div>
         </div>
 
-        <div class="section-header">5. PERSONA QUE REPORTA / SUPERVISOR</div>
-        <div class="row">
-            <div class="cell"><label>Relator:</label><input type="text" id="relator" placeholder="Nombre (Opcional)"></div>
-            <div class="cell"><label>Supervisor Directo:</label><input type="text" id="supervisor" required></div>
-        </div>
-
-        <div class="footer-legend">
-            <span><b>IIFF:</b> Inst. Faena</span>
-            <span><b>PV:</b> Parque Solar</span>
-            <span><b>BESS:</b> Baterías</span>
-            <span><b>LAT:</b> Línea Alta Tensión</span>
-            <span><b>SEC.P:</b> SE Carrera Pinto</span>
-            <span><b>OT:</b> Otros</span>
-        </div>
-
-        <button type="submit">GENERAR RELATÓRIO TÉCNICO PDF</button>
+        <button type="submit">GERAR RELATÓRIO TÉCNICO PDF</button>
     </form>
 </div>
 
 <script>
-    // Registro Offline
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
-
-    // Simulação IA
-    function iaAnalyze() {
-        const text = document.getElementById('descripcion').value.toLowerCase();
-        const msg = document.getElementById('ia-msg');
-        if(text.length > 15) {
-            if(text.includes("fuego") || text.includes("queda") || text.includes("choque")) {
-                msg.innerHTML = "⚠️ IA: <b>Riesgo Alto detectado.</b> Recomenda-se isolamento imediato.";
-                msg.style.color = "red";
-            } else {
-                msg.innerHTML = "✅ IA: Analisando condições de segurança...";
-                msg.style.color = "green";
-            }
-        }
-    }
-
-    // Geração do PDF
     document.getElementById('hSEForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Desenho da Ficha Técnica no PDF
-        doc.rect(10, 10, 190, 20);
         doc.setFont("helvetica", "bold");
-        doc.text("Reporte de Cuasi Accidente - Copiapó Solar", 105, 18, { align: 'center' });
+        doc.text("Reporte de Cuasi Accidente - Elecnor", 105, 20, { align: 'center' });
         
-        doc.setFillColor(203, 213, 224);
-        doc.rect(10, 30, 190, 8, 'F');
-        doc.text("1. ANTECEDENTES", 15, 35);
-        
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-        const fecha = document.getElementById('fecha').value;
-        const empresa = document.getElementById('empresa').value;
-        doc.text(`Fecha: ${fecha} | Empresa: ${empresa}`, 15, 45);
-        doc.text(`Descripcion: ${document.getElementById('descripcion').value}`, 15, 55, { maxWidth: 180 });
+        doc.setFontSize(10);
+        doc.text(`Fecha: ${document.getElementById('fecha').value}`, 15, 40);
+        doc.text(`Departamento: ${document.getElementById('departamento').value}`, 15, 50);
+        doc.text(`Descripcion: ${document.getElementById('descripcion').value}`, 15, 60, { maxWidth: 180 });
 
         const fotoFile = document.getElementById('foto').files[0];
         if (fotoFile) {
             const reader = new FileReader();
             reader.onload = function(ev) {
                 doc.addPage();
-                doc.text("EVIDENCIA FOTOGRAFICA", 15, 20);
                 doc.addImage(ev.target.result, 'JPEG', 15, 30, 180, 120);
-                doc.save("Reporte_HSE_Elecnor.pdf");
+                doc.save("Reporte_Elecnor.pdf");
             };
             reader.readAsDataURL(fotoFile);
         } else {
-            doc.save("Reporte_HSE_Elecnor.pdf");
+            doc.save("Reporte_Elecnor.pdf");
         }
-        
-        alert("✅ PDF Gerado com sucesso!");
+        alert("PDF Gerado!");
     });
 </script>
-
 </body>
 </html>
