@@ -1,138 +1,192 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Elecnor Chile - Copiapó Solar</title>
-    <link rel="manifest" href="/manifest.json">
+    <title>Formulario de Reporte - Elecnor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; padding: 10px; }
-        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 800px; border: 2px solid #000; }
+        body { font-family: Arial, sans-serif; background-color: #f0f0f0; display: flex; justify-content: center; padding: 10px; margin: 0; }
+        .form-container { background: white; width: 100%; max-width: 800px; border: 2px solid #000; box-sizing: border-box; }
         
-        /* Tabela Superior (Header) */
-        .table-header { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .table-header td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 12px; }
-        .logo-td { width: 30%; }
-        .logo-img { width: 100px; }
-        .hss-img { width: 60px; }
+        /* Tabela de Cabeçalho */
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 12px; }
+        .logo-box { width: 25%; }
+        .logo-box img { width: 100px; }
+        .hss-box { width: 25%; color: #0088cc; font-size: 16px; }
 
-        /* Seções de Título Cinza */
-        .section-title { background-color: #d1dce7; border: 1px solid #000; padding: 5px; font-weight: bold; font-size: 13px; text-transform: uppercase; }
+        /* Títulos de Seção Cinza */
+        .section-header { background-color: #cbd5e0; border: 1px solid #000; padding: 4px 10px; font-weight: bold; font-size: 13px; text-align: left; }
 
-        /* Grade do Formulário */
-        .grid-container { display: grid; grid-template-columns: 1fr 1fr; border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; }
-        .grid-item { border-bottom: 1px solid #000; padding: 8px; display: flex; flex-direction: column; }
-        .grid-item:nth-child(odd) { border-right: 1px solid #000; }
-        .full-width { grid-column: span 2; border-right: none !important; }
-
-        label { font-size: 11px; font-weight: bold; margin-bottom: 3px; color: #333; }
-        input, textarea, select { border: none; font-size: 14px; outline: none; background: transparent; width: 100%; }
+        /* Estrutura de Linhas e Células */
+        .row { display: flex; border-bottom: 1px solid #000; width: 100%; }
+        .cell { border-right: 1px solid #000; padding: 5px; display: flex; flex-direction: column; }
+        .cell:last-child { border-right: none; }
+        
+        label { font-size: 10px; font-weight: bold; margin-bottom: 2px; }
+        input, textarea, select { border: none; outline: none; font-size: 13px; background: transparent; width: 100%; padding: 2px 0; }
         textarea { resize: none; }
 
-        .footer-info { font-size: 9px; display: flex; justify-content: space-between; padding: 10px; }
+        /* Configuração de larguras das células */
+        .w-70 { width: 70%; }
+        .w-30 { width: 30%; }
+        .w-50 { width: 50%; }
+        .w-100 { width: 100%; }
+        .w-20 { width: 20%; }
 
-        button { background-color: #003366; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; text-transform: uppercase; }
+        /* Rodapé com Siglas */
+        .footer-legend { padding: 10px; font-size: 9px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; border-top: 1px solid #000; }
+
+        button { background-color: #003366; color: white; border: none; padding: 15px; width: 100%; font-weight: bold; cursor: pointer; text-transform: uppercase; border-top: 2px solid #000; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <table class="table-header">
+
+<div class="form-container">
+    <form id="relatoForm">
+        <table class="header-table">
             <tr>
-                <td class="logo-td"><img id="logoElecnor" src="logo-elecnor.png" class="logo-img"></td>
+                <td class="logo-box"><img src="logo-elecnor.png" alt="Elecnor"></td>
                 <td>Formulario de Reporte de Cuasi Accidente<br>Copiapó Solar</td>
-                <td class="logo-td">HSS & S</td>
+                <td class="hss-box">HSS&S</td>
             </tr>
         </table>
 
-        <form id="relatoForm">
-            <div class="section-title">ANTECEDENTES</div>
-            <div class="grid-container">
-                <div class="grid-item"><label>Fecha de Cuasi Accidente:</label><input type="date" id="fecha" required></div>
-                <div class="grid-item"><label>Hora:</label><input type="time" id="hora" required></div>
-                <div class="grid-item full-width"><label>Empresa:</label><input type="text" id="empresa" placeholder="Elecnor o Contratista" required></div>
-                <div class="grid-item full-width"><label>Ubicación - Área Específica (IIFF, PV, BES, LAT, etc):</label><input type="text" id="ubicacion" required></div>
+        <div class="section-header">ANTECEDENTES</div>
+        <div class="row">
+            <div class="cell w-70">
+                <label>Fecha de Cuasi Accidente:</label>
+                <input type="date" id="fecha" required>
             </div>
-
-            <div class="section-title">DESCRIPCIÓN (¿Qué pasó? ¿Qué evitó el accidente?)</div>
-            <div class="grid-container">
-                <div class="grid-item full-width"><textarea id="descripcion" rows="4" required></textarea></div>
+            <div class="cell w-30">
+                <label>Hora:</label>
+                <input type="time" id="hora" required>
             </div>
-
-            <div class="section-title">REGISTRO FOTOGRÁFICO / EVIDENCIA</div>
-            <div class="grid-container">
-                <div class="grid-item full-width"><input type="file" id="foto" accept="image/*"></div>
-            </div>
-
-            <div class="section-title">ACCIÓN INMEDIATA REALIZADA</div>
-            <div class="grid-container">
-                <div class="grid-item full-width"><textarea id="accion" rows="2" required></textarea></div>
-            </div>
-
-            <div class="section-title">PERSONA QUE REPORTA</div>
-            <div class="grid-container">
-                <div class="grid-item"><label>Nombre y Apellidos:</label><input type="text" id="relator" required></div>
-                <div class="grid-item"><label>Cargo:</label><input type="text" id="cargo_relator"></div>
-            </div>
-
-            <div class="section-title">SUPERVISOR DIRECTO</div>
-            <div class="grid-container">
-                <div class="grid-item"><label>Nombre y Apellidos:</label><input type="text" id="supervisor" required></div>
-                <div class="grid-item"><label>Cargo:</label><input type="text" id="cargo_supervisor"></div>
-            </div>
-
-            <button type="submit">GERAR RELATÓRIO TÉCNICO PDF</button>
-        </form>
-
-        <div class="footer-info">
-            <span>IIFF: Instalación de Faena</span>
-            <span>PV: Parque Fotovoltaico</span>
-            <span>LAT: Línea de Alta Tensión</span>
         </div>
-    </div>
+        <div class="row">
+            <div class="cell w-100">
+                <label>Empresa:</label>
+                <input type="text" id="empresa" placeholder="Elecnor o Contratista" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="cell w-50">
+                <label>Ubicación - Área Específica:</label>
+                <input type="text" id="ubicacion" placeholder="Ej: LAT, PV, BES..." required>
+            </div>
+            <div class="cell w-50" style="flex-direction: row; align-items: center; justify-content: space-around; font-size: 9px;">
+                <span>IIFF <input type="radio" name="area" value="IIFF"></span>
+                <span>PV <input type="radio" name="area" value="PV"></span>
+                <span>BES <input type="radio" name="area" value="BES"></span>
+                <span>LAT <input type="radio" name="area" value="LAT"></span>
+                <span>OT <input type="radio" name="area" value="OT"></span>
+            </div>
+        </div>
 
-    <script>
-        // Registro do Service Worker para Offline
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
+        <div class="section-header">DESCRIPCIÓN (¿Qué pasó? ¿Qué Evitó o accidente? ¿consecuencias?)</div>
+        <div class="row">
+            <div class="cell w-100">
+                <textarea id="descripcion" rows="6" required></textarea>
+            </div>
+        </div>
 
-        document.getElementById('relatoForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Layout do PDF em formato de Tabela
-            doc.rect(10, 10, 190, 20); // Header box
-            doc.setFontSize(10);
-            doc.text("Reporte de Cuasi Accidente - Copiapó Solar", 105, 22, { align: 'center' });
+        <div class="section-header">REALIZA UN CROQUIS O GEOREFERENCIA DEL EVENTO / FOTO</div>
+        <div class="row">
+            <div class="cell w-100">
+                <input type="file" id="foto" accept="image/*">
+                <div style="height: 150px; display: flex; align-items: center; justify-content: center; color: #ccc;">
+                    Espacio para Evidencia / Foto
+                </div>
+            </div>
+        </div>
 
-            // Seção Antecedentes
-            doc.setFillColor(209, 220, 231);
-            doc.rect(10, 30, 190, 8, 'F');
-            doc.rect(10, 30, 190, 8);
-            doc.text("ANTECEDENTES", 15, 35);
+        <div class="section-header">ACCIÓN INMEDIATA REALIZADA (¿Pudo tomar alguna acción?)</div>
+        <div class="row">
+            <div class="cell w-100">
+                <textarea id="accion" rows="3" required></textarea>
+            </div>
+        </div>
 
-            doc.rect(10, 38, 190, 20);
-            doc.setFontSize(8);
-            doc.text(`Fecha: ${document.getElementById('fecha').value} | Hora: ${document.getElementById('hora').value}`, 15, 45);
-            doc.text(`Empresa: ${document.getElementById('empresa').value}`, 15, 52);
+        <div class="section-header">PERSONA QUE REPORTA (Anonimato Opcional)</div>
+        <div class="row">
+            <div class="cell w-70">
+                <label>Nombre y Apellidos:</label>
+                <input type="text" id="nombreRelator" required>
+            </div>
+            <div class="cell w-30">
+                <label>Cargo:</label>
+                <input type="text" id="cargoRelator">
+            </div>
+        </div>
 
-            // Foto
-            const fotoInput = document.getElementById('foto');
-            if (fotoInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    doc.addPage();
-                    doc.text("EVIDENCIA FOTOGRAFICA", 15, 20);
-                    doc.addImage(event.target.result, 'JPEG', 15, 30, 180, 120);
-                    doc.save("Relatorio_Tecnico_Elecnor.pdf");
-                };
-                reader.readAsDataURL(fotoInput.files[0]);
-            } else {
-                doc.save("Relatorio_Tecnico_Elecnor.pdf");
-            }
-            
-            alert("✅ Relatório Técnico Gerado!");
-        });
-    </script>
+        <div class="section-header">SUPERVISOR DIRECTO (Anonimato Opcional)</div>
+        <div class="row">
+            <div class="cell w-70">
+                <label>Nombre y Apellidos:</label>
+                <input type="text" id="nombreSupervisor" required>
+            </div>
+            <div class="cell w-30">
+                <label>Cargo:</label>
+                <input type="text" id="cargoSupervisor">
+            </div>
+        </div>
+
+        <div class="footer-legend">
+            <span><b>IIFF:</b> Instalación de Faena</span>
+            <span><b>LAT:</b> Línea de Alta Tensión</span>
+            <span><b>OT:</b> Otros</span>
+            <span><b>PV:</b> Parque Fotovoltaico</span>
+            <span><b>SE C.P:</b> Subestación Carrera Pinto</span>
+            <span><b>BESS:</b> Baterías</span>
+            <span><b>SE ELE:</b> Subestación Elevadora</span>
+        </div>
+
+        <button type="submit">GERAR RELATÓRIO TÉCNICO PDF</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('relatoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Como o PDF precisa ser igual à ficha, usamos o método de desenhar linhas
+        doc.rect(10, 10, 190, 20); // Borda cabeçalho
+        doc.setFontSize(10);
+        doc.text("Formulario de Reporte de Cuasi Accidente", 105, 18, { align: 'center' });
+        doc.text("Copiapó Solar", 105, 25, { align: 'center' });
+
+        // Desenhar Seção Antecedentes no PDF
+        doc.setFillColor(203, 213, 224);
+        doc.rect(10, 30, 190, 8, 'F');
+        doc.rect(10, 30, 190, 8);
+        doc.text("ANTECEDENTES", 15, 35);
+
+        // Dados
+        doc.setFontSize(8);
+        doc.text(`Fecha: ${document.getElementById('fecha').value}`, 15, 45);
+        doc.text(`Hora: ${document.getElementById('hora').value}`, 100, 45);
+        doc.text(`Empresa: ${document.getElementById('empresa').value}`, 15, 52);
+        doc.text(`Ubicacion: ${document.getElementById('ubicacion').value}`, 15, 59);
+
+        // Foto se houver
+        const foto = document.getElementById('foto').files[0];
+        if(foto) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                doc.addImage(event.target.result, 'JPEG', 20, 120, 170, 100);
+                doc.save("Reporte_Elecnor_Ficha.pdf");
+            };
+            reader.readAsDataURL(foto);
+        } else {
+            doc.save("Reporte_Elecnor_Ficha.pdf");
+        }
+
+        alert("¡Ficha Técnica Generada con Éxito!");
+    });
+</script>
+
 </body>
 </html>
