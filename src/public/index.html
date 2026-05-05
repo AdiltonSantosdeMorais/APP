@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HSE Elecnor - Copiapó Solar</title>
+    <title>HSE ELECNOR - PROYECTO COPIAPÓ SOLAR</title>
     <link rel="manifest" href="/manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -11,30 +11,26 @@
         body { font-family: Arial, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
         .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; box-sizing: border-box; display: flex; flex-direction: column; }
         
-        /* Cabeçalho */
+        /* CABEÇALHO */
         .header-table { width: 100%; border-collapse: collapse; }
-        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 11px; }
-        .logo-img { width: 80px; height: auto; }
+        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; }
+        .logo-img { width: 70px; height: auto; }
+        .tech-info { text-align: left !important; font-size: 8px !important; line-height: 1.2; }
         
-        /* Seções */
-        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        /* SEÇÕES */
+        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 140px; box-sizing: border-box; }
         .cell:last-child { border-right: none; }
         
-        label { font-size: 10px; font-weight: bold; margin-bottom: 4px; color: var(--blue); text-transform: uppercase; }
-        input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; }
+        label { font-size: 10px; font-weight: bold; margin-bottom: 4px; color: var(--blue); }
+        input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; text-transform: uppercase; }
         
-        /* Checkboxes */
-        .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 5px; width: 100%; padding: 5px 0; }
-        .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
-        .check-item input { width: auto; margin-right: 5px; }
-        
-        /* Foto */
+        /* REGISTRO FOTOGRÁFICO */
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
         #preview { width: 100%; max-height: 200px; object-fit: contain; display: none; margin-top: 10px; }
         
-        .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: auto; }
         #statusMsg { font-size: 12px; text-align: center; padding: 10px; display: none; font-weight: bold; }
         
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
@@ -45,9 +41,16 @@
     <form id="hSEForm">
         <table class="header-table">
             <tr>
-                <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
-                <td style="width: 50%;">Formulario NEARMISS<br>Copiapó Solar</td>
-                <td style="width: 25%; color: #0088cc;">HSS&S</td>
+                <td style="width: 20%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
+                <td style="width: 50%; font-size: 12px;">FORMULARIO NEARMISS<br>PROYECTO COPIAPÓ SOLAR</td>
+                <td style="width: 30%;" class="tech-info">
+                    CODIGO: <br>
+                    FECHA: <br>
+                    PÁGINA: 1 DE 1 <br>
+                    REVISIÓN: 00 <br>
+                    CATEGORIA: GENERAL <br>
+                    SECTOR: SEGURIDAD
+                </td>
             </tr>
         </table>
         
@@ -57,9 +60,9 @@
             <div class="cell"><label>HORA:</label><input type="time" id="hora" required></div>
         </div>
         <div class="row">
-            <div class="cell" style="flex: 1.5;"><label>DEPARTAMENTO:</label>
+            <div class="cell"><label>DEPARTAMENTO:</label>
                 <select id="depto" required>
-                    <option value="">Seleccione...</option>
+                    <option value="">SELECCIONE...</option>
                     <option value="ADM/RRHH">ADM/RRHH</option>
                     <option value="CALIDAD">CALIDAD</option>
                     <option value="CIVIL">CIVIL</option>
@@ -68,32 +71,22 @@
                     <option value="LOGISTICA">LOGISTICA</option>
                 </select>
             </div>
-            <div class="cell" style="flex: 2;"><label>ÁREA ESPECÍFICA:</label>
-                <div class="area-grid">
-                    <label class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="PV"> PV</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="BESS"> BESS</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="SE C.P"> SE C.P</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="SE ELE"> SE ELE</label>
-                </div>
-            </div>
         </div>
 
         <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
-        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="Descreva o que aconteceu..." required></textarea></div></div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="DESCREVA O QUE ACONTECEU..." required></textarea></div></div>
 
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 Toque para capturar foto</label>
+            <label style="cursor:pointer">📸 TOQUE PARA CAPTURAR FOTO</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
 
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Nombre (opcional)"></div>
-            <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required placeholder="Nombre del supervisor"></div>
+            <div class="cell"><label>NOME E APELIDO:</label><input type="text" id="relator" placeholder="NOME COMPLETO" required></div>
+            <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required placeholder="NOME DO SUPERVISOR"></div>
         </div>
 
         <div id="statusMsg"></div>
@@ -102,7 +95,7 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
+    const GOOGLE_SCRIPT_URL = 'SUA_URL_AQUI'; // Substitua pela sua URL do Google Apps Script
 
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
@@ -132,113 +125,92 @@
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const status = document.getElementById('statusMsg');
+        const nomeRelator = document.getElementById('relator').value.toUpperCase();
         
         btn.disabled = true;
-        btn.innerText = "PROCESANDO...";
+        btn.innerText = "ENVIANDO...";
         status.style.display = "block";
-        status.innerText = "⏳ Comprimindo e sincronizando com Drive...";
+        status.innerText = "⏳ GERANDO PDF E SINCRONIZANDO...";
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
+        const grayColor = [203, 213, 224];
+        const blueLabel = [0, 51, 102];
 
-        const corDeFundo = [203, 213, 224];
-        const corDoRotulo = [0, 51, 102];
-
-        // --- DESENHO DO PDF (IDÊNTICO AO FORMULÁRIO) ---
+        // --- CABEÇALHO ---
         doc.setLineWidth(0.5);
         doc.rect(10, 10, 190, 25); 
-        doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
+        doc.line(50, 10, 50, 35); doc.line(150, 10, 150, 35);
         
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
         doc.setFontSize(11); doc.setFont("helvetica", "bold");
-        doc.text("Formulario NEARMISS", 105, 20, { align: 'center' });
-        doc.text("Copiapó Solar", 105, 27, { align: 'center' });
-        doc.setTextColor(0, 136, 204); doc.text("HSS&S", 175, 23, { align: 'center' });
-        doc.setTextColor(0);
+        doc.text("FORMULARIO NEARMISS", 100, 20, { align: 'center' });
+        doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
+        
+        doc.setFontSize(7);
+        doc.text("CODIGO:", 152, 15);
+        doc.text("FECHA:", 152, 19);
+        doc.text("PÁGINA: 1 DE 1", 152, 23);
+        doc.text("REVISIÓN: 00", 152, 27);
+        doc.text("CATEGORIA: GENERAL", 152, 31);
+        doc.text("SECTOR: SEGURIDAD", 152, 34);
 
-        // 1. Contexto
-        doc.setFillColor(...corDeFundo);
-        doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
-        doc.setFontSize(10); doc.text("1. CONTEXTO", 15, 41);
-
+        // --- SEÇÕES (CONTEXTO, DESCRIÇÃO, FOTO, ID) ---
+        // Seção 1
+        doc.setFillColor(...grayColor); doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
         doc.rect(10, 43, 190, 12); doc.line(105, 43, 105, 55);
-        doc.setFontSize(8); doc.setTextColor(...corDoRotulo);
+        doc.setFontSize(7); doc.setTextColor(...blueLabel);
         doc.text("FECHA:", 12, 47); doc.text("HORA:", 107, 47);
         doc.setFontSize(10); doc.setTextColor(0);
         doc.text(document.getElementById('fecha').value, 12, 52);
         doc.text(document.getElementById('hora').value, 107, 52);
 
-        doc.rect(10, 55, 190, 12); doc.line(80, 55, 80, 67);
-        doc.setFontSize(8); doc.setTextColor(...corDoRotulo);
-        doc.text("DEPARTAMENTO / ÁREA:", 12, 59); doc.text("ÁREA ESPECÍFICA:", 82, 59);
-        doc.setFontSize(9); doc.setTextColor(0);
-        doc.text(document.getElementById('depto').value, 12, 64);
-        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
-        doc.text(areas, 82, 64);
-
-        // 2. Descripción
-        doc.setFillColor(...corDeFundo);
-        doc.rect(10, 67, 190, 8, 'F'); doc.rect(10, 67, 190, 8);
-        doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("2. DESCRIPCIÓN DO EVENTO", 15, 73);
+        // Seção 2: Descrição
+        doc.setFillColor(...grayColor); doc.rect(10, 67, 190, 8, 'F'); doc.rect(10, 67, 190, 8);
+        doc.text("2. DESCRIPCIÓN DO EVENTO", 12, 73);
         doc.rect(10, 75, 190, 35);
-        doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        const lines = doc.splitTextToSize(document.getElementById('desc').value, 180);
-        doc.text(lines, 12, 82);
+        const descLines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
+        doc.text(descLines, 12, 82);
 
-        // 3. Foto (Compressão Automática)
-        doc.setFillColor(...corDeFundo);
-        doc.rect(10, 110, 190, 8, 'F'); doc.rect(10, 110, 190, 8);
-        doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("3. REGISTRO FOTOGRÁFICO", 15, 116);
+        // Seção 3: Foto
+        doc.setFillColor(...grayColor); doc.rect(10, 110, 190, 8, 'F'); doc.rect(10, 110, 190, 8);
+        doc.text("3. REGISTRO FOTOGRÁFICO", 12, 116);
         doc.rect(10, 118, 190, 105);
         if (preview.style.display === 'block') {
-            const canvas = document.createElement('canvas');
-            const img = new Image();
-            img.src = preview.src;
-            await new Promise(r => img.onload = r);
-            const scale = 800 / img.width;
-            canvas.width = 800; canvas.height = img.height * scale;
-            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-            const compressedImg = canvas.toDataURL('image/jpeg', 0.7);
-            doc.addImage(compressedImg, 'JPEG', 15, 122, 180, 95);
+            doc.addImage(preview.src, 'JPEG', 15, 122, 180, 95);
         }
 
-        // 4. Identificación
-        doc.setFillColor(...corDeFundo);
-        doc.rect(10, 223, 190, 8, 'F'); doc.rect(10, 223, 190, 8);
-        doc.setFontSize(10); doc.text("4. IDENTIFICACIÓN", 15, 229);
+        // Seção 4: Identificação
+        doc.setFillColor(...grayColor); doc.rect(10, 223, 190, 8, 'F'); doc.rect(10, 223, 190, 8);
+        doc.text("4. IDENTIFICACIÓN", 12, 229);
         doc.rect(10, 231, 190, 15); doc.line(105, 231, 105, 246);
-        doc.setFontSize(8); doc.setTextColor(...corDoRotulo);
-        doc.text("NARRADOR:", 12, 235); doc.text("SUPERVISOR:", 107, 235);
+        doc.setFontSize(8); doc.setTextColor(...blueLabel);
+        doc.text("NOME E APELIDO:", 12, 235); doc.text("SUPERVISOR:", 107, 235);
         doc.setFontSize(10); doc.setTextColor(0);
-        doc.text(document.getElementById('relator').value || "N/A", 12, 242);
-        doc.text(document.getElementById('supervisor').value, 107, 242);
+        doc.text(nomeRelator, 12, 242);
+        doc.text(document.getElementById('supervisor').value.toUpperCase(), 107, 242);
 
-        // --- ENVIO ---
+        // --- ENVIO COM NOME DO RELATOR ---
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         const payload = JSON.stringify({
-            name: `Nearmiss_${document.getElementById('fecha').value}_${Date.now()}.pdf`,
+            name: `${nomeRelator}_${document.getElementById('fecha').value}.pdf`,
             bytes: pdfBase64
         });
 
         try {
             await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: payload });
-            status.innerText = "✅ Enviado com sucesso ao Drive!";
-            status.style.color = "green";
-            doc.save(`Reporte_Nearmiss_${document.getElementById('fecha').value}.pdf`);
+            status.innerText = "✅ ENVIADO COM SUCESSO!";
+            doc.save(`${nomeRelator}_${document.getElementById('fecha').value}.pdf`);
         } catch (err) {
-            status.innerText = "❌ Erro ao sincronizar. PDF salvo localmente.";
-            doc.save(`Reporte_Nearmiss_Backup.pdf`);
+            status.innerText = "❌ ERRO AO SINCRONIZAR.";
         }
 
         btn.disabled = false;
         btn.innerText = "ENVIAR E GERAR PDF";
     });
-
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
 </script>
 </body>
 </html>
