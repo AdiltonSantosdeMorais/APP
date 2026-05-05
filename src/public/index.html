@@ -11,12 +11,12 @@
         body { font-family: Arial, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
         .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; box-sizing: border-box; display: flex; flex-direction: column; }
         
-        /* Encabezado */
+        /* Cabeçalho */
         .header-table { width: 100%; border-collapse: collapse; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 11px; }
         .logo-img { width: 80px; height: auto; }
         
-        /* Secciones del Formulario */
+        /* Seções */
         .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 140px; box-sizing: border-box; }
@@ -25,16 +25,15 @@
         label { font-size: 10px; font-weight: bold; margin-bottom: 4px; color: var(--blue); text-transform: uppercase; }
         input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; }
         
-        /* Grid de Selección de Área */
+        /* Checkboxes */
         .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 5px; width: 100%; padding: 5px 0; }
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
         .check-item input { width: auto; margin-right: 5px; }
         
-        /* Registro Fotográfico */
+        /* Foto */
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
         #preview { width: 100%; max-height: 200px; object-fit: contain; display: none; margin-top: 10px; }
         
-        /* Botón de Envío */
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
         #statusMsg { font-size: 12px; text-align: center; padding: 10px; display: none; font-weight: bold; }
         
@@ -47,7 +46,7 @@
         <table class="header-table">
             <tr>
                 <td style="width: 25%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
-                <td style="width: 50%;">Formulario de reporte de cuasi accidente<br>Copiapó Solar</td>
+                <td style="width: 50%;">Formulario NEARMISS<br>Copiapó Solar</td>
                 <td style="width: 25%; color: #0088cc;">HSS&S</td>
             </tr>
         </table>
@@ -81,19 +80,19 @@
             </div>
         </div>
 
-        <div class="section-header">2. DESCRIPCIÓN DEL EVENTO</div>
-        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="Describa lo que sucedió..." required></textarea></div></div>
+        <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="Descreva o que aconteceu..." required></textarea></div></div>
 
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 Capturar o Seleccionar Foto</label>
+            <label style="cursor:pointer">📸 Toque para capturar foto</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
 
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Nombre (Opcional)"></div>
+            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Nombre (opcional)"></div>
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required placeholder="Nombre del supervisor"></div>
         </div>
 
@@ -103,7 +102,6 @@
 </div>
 
 <script>
-    // URL DE TU SCRIPT ACTUALIZADA
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
     const fotoInput = document.getElementById('foto');
@@ -136,63 +134,66 @@
         const status = document.getElementById('statusMsg');
         
         btn.disabled = true;
-        btn.innerText = "ENVIANDO...";
+        btn.innerText = "PROCESANDO...";
         status.style.display = "block";
-        status.innerText = "⏳ Generando PDF A4 idêntico...";
+        status.innerText = "⏳ Comprimindo e sincronizando com Drive...";
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        const grayColor = [203, 213, 224];
-        const blueLabel = [0, 51, 102];
+        const corDeFundo = [203, 213, 224];
+        const corDoRotulo = [0, 51, 102];
 
-        // --- DIBUJO DEL PDF ---
+        // --- DESENHO DO PDF (IDÊNTICO AO FORMULÁRIO) ---
         doc.setLineWidth(0.5);
-        doc.rect(10, 10, 190, 25); // Marco Encabezado
+        doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
         
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
         doc.setFontSize(11); doc.setFont("helvetica", "bold");
-        doc.text("Formulario de reporte de cuasi accidente", 105, 20, { align: 'center' });
+        doc.text("Formulario NEARMISS", 105, 20, { align: 'center' });
         doc.text("Copiapó Solar", 105, 27, { align: 'center' });
         doc.setTextColor(0, 136, 204); doc.text("HSS&S", 175, 23, { align: 'center' });
         doc.setTextColor(0);
 
         // 1. Contexto
-        doc.setFillColor(...grayColor);
-        doc.rect(10, 35, 190, 7, 'F'); doc.rect(10, 35, 190, 7);
-        doc.setFontSize(9); doc.text("1. CONTEXTO", 12, 40);
-        doc.rect(10, 42, 190, 12); doc.line(105, 42, 105, 54);
-        doc.setFontSize(7); doc.setTextColor(...blueLabel);
-        doc.text("FECHA:", 12, 46); doc.text("HORA:", 107, 46);
-        doc.setFontSize(10); doc.setTextColor(0);
-        doc.text(document.getElementById('fecha').value, 12, 51);
-        doc.text(document.getElementById('hora').value, 107, 51);
+        doc.setFillColor(...corDeFundo);
+        doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
+        doc.setFontSize(10); doc.text("1. CONTEXTO", 15, 41);
 
-        doc.rect(10, 54, 190, 12); doc.line(80, 54, 80, 66);
-        doc.setFontSize(7); doc.setTextColor(...blueLabel);
-        doc.text("DEPARTAMENTO:", 12, 58); doc.text("ÁREA ESPECÍFICA:", 82, 58);
+        doc.rect(10, 43, 190, 12); doc.line(105, 43, 105, 55);
+        doc.setFontSize(8); doc.setTextColor(...corDoRotulo);
+        doc.text("FECHA:", 12, 47); doc.text("HORA:", 107, 47);
+        doc.setFontSize(10); doc.setTextColor(0);
+        doc.text(document.getElementById('fecha').value, 12, 52);
+        doc.text(document.getElementById('hora').value, 107, 52);
+
+        doc.rect(10, 55, 190, 12); doc.line(80, 55, 80, 67);
+        doc.setFontSize(8); doc.setTextColor(...corDoRotulo);
+        doc.text("DEPARTAMENTO / ÁREA:", 12, 59); doc.text("ÁREA ESPECÍFICA:", 82, 59);
         doc.setFontSize(9); doc.setTextColor(0);
-        doc.text(document.getElementById('depto').value, 12, 63);
+        doc.text(document.getElementById('depto').value, 12, 64);
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
-        doc.text(areas, 82, 63);
+        doc.text(areas, 82, 64);
 
         // 2. Descripción
-        doc.setFillColor(...grayColor);
-        doc.rect(10, 66, 190, 7, 'F'); doc.rect(10, 66, 190, 7);
-        doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("2. DESCRIPCIÓN DO EVENTO", 12, 71);
-        doc.rect(10, 73, 190, 35);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-        const descText = doc.splitTextToSize(document.getElementById('desc').value, 180);
-        doc.text(descText, 12, 80);
+        doc.setFillColor(...corDeFundo);
+        doc.rect(10, 67, 190, 8, 'F'); doc.rect(10, 67, 190, 8);
+        doc.setFontSize(10); doc.setFont("helvetica", "bold");
+        doc.text("2. DESCRIPCIÓN DO EVENTO", 15, 73);
+        doc.rect(10, 75, 190, 35);
+        doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(document.getElementById('desc').value, 180);
+        doc.text(lines, 12, 82);
 
-        // 3. Foto (Con Compresión)
-        doc.setFillColor(...grayColor);
-        doc.rect(10, 108, 190, 7, 'F'); doc.rect(10, 108, 190, 7);
-        doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO", 12, 113);
-        doc.rect(10, 115, 190, 105);
+        // 3. Foto (Compressão Automática)
+        doc.setFillColor(...corDeFundo);
+        doc.rect(10, 110, 190, 8, 'F'); doc.rect(10, 110, 190, 8);
+        doc.setFontSize(10); doc.setFont("helvetica", "bold");
+        doc.text("3. REGISTRO FOTOGRÁFICO", 15, 116);
+        doc.rect(10, 118, 190, 105);
         if (preview.style.display === 'block') {
             const canvas = document.createElement('canvas');
             const img = new Image();
@@ -201,36 +202,36 @@
             const scale = 800 / img.width;
             canvas.width = 800; canvas.height = img.height * scale;
             canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-            doc.addImage(canvas.toDataURL('image/jpeg', 0.7), 'JPEG', 15, 120, 180, 95);
+            const compressedImg = canvas.toDataURL('image/jpeg', 0.7);
+            doc.addImage(compressedImg, 'JPEG', 15, 122, 180, 95);
         }
 
         // 4. Identificación
-        doc.setFillColor(...grayColor);
-        doc.rect(10, 220, 190, 7, 'F'); doc.rect(10, 220, 190, 7);
-        doc.text("4. IDENTIFICACIÓN", 12, 225);
-        doc.rect(10, 227, 190, 15); doc.line(105, 227, 105, 242);
-        doc.setFontSize(7); doc.setTextColor(...blueLabel);
-        doc.text("RELATOR:", 12, 231); doc.text("SUPERVISOR:", 107, 231);
+        doc.setFillColor(...corDeFundo);
+        doc.rect(10, 223, 190, 8, 'F'); doc.rect(10, 223, 190, 8);
+        doc.setFontSize(10); doc.text("4. IDENTIFICACIÓN", 15, 229);
+        doc.rect(10, 231, 190, 15); doc.line(105, 231, 105, 246);
+        doc.setFontSize(8); doc.setTextColor(...corDoRotulo);
+        doc.text("NARRADOR:", 12, 235); doc.text("SUPERVISOR:", 107, 235);
         doc.setFontSize(10); doc.setTextColor(0);
-        doc.text(document.getElementById('relator').value || "N/A", 12, 239);
-        doc.text(document.getElementById('supervisor').value, 107, 239);
+        doc.text(document.getElementById('relator').value || "N/A", 12, 242);
+        doc.text(document.getElementById('supervisor').value, 107, 242);
 
-        // --- PROCESO DE ENVÍO ---
+        // --- ENVIO ---
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         const payload = JSON.stringify({
-            name: `Reporte_HSE_${document.getElementById('fecha').value}_${Date.now()}.pdf`,
+            name: `Nearmiss_${document.getElementById('fecha').value}_${Date.now()}.pdf`,
             bytes: pdfBase64
         });
 
         try {
             await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: payload });
-            status.innerText = "✅ ¡Enviado al Drive y generado con éxito!";
+            status.innerText = "✅ Enviado com sucesso ao Drive!";
             status.style.color = "green";
-            doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
+            doc.save(`Reporte_Nearmiss_${document.getElementById('fecha').value}.pdf`);
         } catch (err) {
-            status.innerText = "❌ Error al enviar. Guardado localmente.";
-            status.style.color = "red";
-            doc.save(`Reporte_Backup.pdf`);
+            status.innerText = "❌ Erro ao sincronizar. PDF salvo localmente.";
+            doc.save(`Reporte_Nearmiss_Backup.pdf`);
         }
 
         btn.disabled = false;
