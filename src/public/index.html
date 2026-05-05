@@ -125,6 +125,7 @@
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
+    const form = document.getElementById('hSEForm');
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
 
@@ -149,7 +150,7 @@
         } catch (e) { return null; }
     }
 
-    document.getElementById('hSEForm').addEventListener('submit', async function(e) {
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const status = document.getElementById('statusMsg');
@@ -186,7 +187,6 @@
         doc.setFillColor(...corDeFundo);
         doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
         doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
-        
         doc.rect(10, 43, 190, 12); doc.line(105, 43, 105, 55);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo);
         doc.text("FECHA:", 12, 47); doc.text("HORA:", 107, 47);
@@ -249,11 +249,25 @@
                 mode: 'no-cors', 
                 body: JSON.stringify({ name: fileName, bytes: pdfBase64 }) 
             });
+            
+            // LIMPEZA DO APP APÓS SUCESSO
             status.innerText = "✅ ¡ENVIADO EXITOSAMENTE!";
             status.style.color = "green";
             doc.save(fileName);
+            
+            // Resetar campos do formulário
+            form.reset();
+            preview.style.display = 'none';
+            preview.src = '';
+            
+            // Remover mensagem de sucesso após 5 segundos
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+
         } catch (err) {
             status.innerText = "⚠️ ERROR DE CONEXIÓN. PDF GUARDADO EN DISPOSITIVO.";
+            status.style.color = "red";
             doc.save(fileName);
         }
 
