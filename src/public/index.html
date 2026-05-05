@@ -26,6 +26,7 @@
         #preview { width: 100%; max-height: 150px; object-fit: contain; display: none; margin-top: 10px; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
         #statusMsg { font-size: 12px; text-align: center; padding: 10px; display: none; font-weight: bold; }
+        @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
     </style>
 </head>
 <body>
@@ -67,10 +68,10 @@
             </div>
         </div>
         <div class="section-header">2. DESCRIPCIÓN</div>
-        <div class="row"><div class="cell"><textarea id="desc" rows="3" placeholder="¿Qué passou?" required></textarea></div></div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="3" placeholder="¿O que aconteceu?" required></textarea></div></div>
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 Toque para capturar foto</label>
+            <label style="cursor:pointer">📸 Capturar Foto</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
@@ -80,16 +81,16 @@
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
         </div>
         <div id="statusMsg"></div>
-        <button type="submit" id="submitBtn" class="btn-submit">ENVIAR E GERAR PDF</button>
+        <button type="submit" id="submitBtn" class="btn-submit">ENVIAR AO DRIVE E GERAR PDF</button>
     </form>
 </div>
 
 <script>
-    // URL DO SEU GOOGLE SCRIPT (COLE AQUI!)
-    const GOOGLE_SCRIPT_URL = 'SUA_URL_DO_GOOGLE_SCRIPT_AQUI';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/elecnor.es/s/AKfycbyjIofGy0Fy9tXGl81QyirMgudoaSolJPYVWzxUUl2iV5-z99bFDOZL9C-2WQbTO1KF/exec';
 
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
+
     fotoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -119,7 +120,7 @@
         btn.disabled = true;
         btn.innerText = "ENVIANDO...";
         status.style.display = "block";
-        status.innerText = "⏳ Gerando PDF e sincronizando com Drive...";
+        status.innerText = "⏳ Sincronizando com Drive...";
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -127,7 +128,7 @@
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
-        // --- PDF DRAWING ---
+        // --- Desenho do PDF (1 Página) ---
         doc.setLineWidth(0.4);
         doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
@@ -161,10 +162,12 @@
             doc.addImage(preview.src, 'JPEG', 20, 132, 170, 100);
         }
 
-        // --- ENVIO ---
+        // --- Preparação para o envio ---
         const pdfData = doc.output('arraybuffer');
         const uint8 = new Uint8Array(pdfData);
-        const base64Data = btoa(String.fromCharCode.apply(null, uint8));
+        let binary = '';
+        for (let i = 0; i < uint8.byteLength; i++) binary += String.fromCharCode(uint8[i]);
+        const base64Data = btoa(binary);
 
         const payload = JSON.stringify({
             name: `Reporte_${document.getElementById('fecha').value}_${Date.now()}.pdf`,
@@ -172,22 +175,38 @@
         });
 
         try {
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
+            await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Importante para Google Script
+                mode: 'no-cors',
                 body: payload
             });
-            
             status.innerText = "✅ Enviado com sucesso ao Drive!";
             status.style.color = "green";
             doc.save(`Reporte_Elecnor.pdf`);
         } catch (err) {
-            status.innerText = "❌ Erro ao enviar. Verifique internet.";
+            status.innerText = "❌ Erro ao enviar. Verifique a conexão.";
             status.style.color = "red";
         }
 
         btn.disabled = false;
-        btn.innerText = "ENVIAR E GERAR PDF";
+        btn.innerText = "ENVIAR AO DRIVE E GERAR PDF";
+    });
+
+    // --- Service Worker e Instalação ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installMsg = document.createElement('div');
+        installMsg.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--blue); color:white; padding:15px; border-radius:8px; z-index:1000; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); width:90%;";
+        installMsg.innerHTML = "<strong>Instalar App Elecnor?</strong><br><button id='btnInstall' style='margin-top:10px; padding:8px 20px; border:none; border-radius:5px; background:white; color:var(--blue); font-weight:bold;'>INSTALAR</button>";
+        document.body.appendChild(installMsg);
+        document.getElementById('btnInstall').addEventListener('click', () => {
+            if (deferredPrompt) { deferredPrompt.prompt(); installMsg.remove(); }
+        });
     });
 </script>
 </body>
