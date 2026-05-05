@@ -25,7 +25,7 @@
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
         #preview { width: 100%; max-height: 150px; object-fit: contain; display: none; margin-top: 10px; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
-        @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
+        #statusMsg { font-size: 12px; text-align: center; padding: 10px; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -66,7 +66,7 @@
                 </div>
             </div>
         </div>
-        <div class="section-header">2. DESCRIPCIÓN DO EVENTO</div>
+        <div class="section-header">2. DESCRIPCIÓN</div>
         <div class="row"><div class="cell"><textarea id="desc" rows="3" placeholder="¿Qué passou?" required></textarea></div></div>
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
@@ -79,15 +79,17 @@
             <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Opcional"></div>
             <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
         </div>
-        <button type="submit" class="btn-submit">GERAR RELATÓRIO PDF</button>
+        <div id="statusMsg"></div>
+        <button type="submit" id="submitBtn" class="btn-submit">ENVIAR E GERAR PDF</button>
     </form>
 </div>
 
 <script>
+    // URL DO SEU GOOGLE SCRIPT (COLE AQUI!)
+    const GOOGLE_SCRIPT_URL = 'SUA_URL_DO_GOOGLE_SCRIPT_AQUI';
+
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
-    
-    // Preview de Imagem
     fotoInput.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -97,7 +99,6 @@
         }
     });
 
-    // Função Logo Base64
     async function getLogoBase64(url) {
         try {
             const response = await fetch(url);
@@ -110,88 +111,83 @@
         } catch (e) { return null; }
     }
 
-    // Gerador de PDF A4
     document.getElementById('hSEForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('statusMsg');
+        
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
+        status.style.display = "block";
+        status.innerText = "⏳ Gerando PDF e sincronizando com Drive...";
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
+        // --- PDF DRAWING ---
         doc.setLineWidth(0.4);
         doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
         doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("Formulario de reporte de cuasi accidente", 105, 20, { align: 'center' });
+        doc.text("Reporte de Cuasi Accidente", 105, 20, { align: 'center' });
         doc.text("Copiapó Solar", 105, 27, { align: 'center' });
-        doc.setTextColor(0, 136, 204); doc.text("HSS&S", 175, 23, { align: 'center' });
         
-        doc.setTextColor(0); doc.setFillColor(203, 213, 224);
+        doc.setFillColor(203, 213, 224);
         doc.rect(10, 35, 190, 7, 'F'); doc.rect(10, 35, 190, 7);
         doc.setFontSize(9); doc.text("1. CONTEXTO", 15, 40);
-        doc.rect(10, 42, 190, 22); doc.line(10, 53, 200, 53); doc.line(105, 42, 105, 53);
+        doc.rect(10, 42, 190, 22);
         doc.setFontSize(8); doc.setFont("helvetica", "normal");
         doc.text("FECHA: " + document.getElementById('fecha').value, 12, 49);
         doc.text("HORA: " + document.getElementById('hora').value, 107, 49);
         doc.text("DEPTO: " + document.getElementById('depto').value, 12, 60);
-        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
-        doc.text("ÁREAS: " + areas, 107, 60);
 
-        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
+        doc.setFillColor(203, 213, 224);
         doc.rect(10, 64, 190, 7, 'F'); doc.rect(10, 64, 190, 7);
         doc.text("2. DESCRIPCIÓN", 15, 69);
-        doc.rect(10, 71, 190, 30); doc.setFont("helvetica", "normal");
+        doc.rect(10, 71, 190, 30);
         doc.text(doc.splitTextToSize(document.getElementById('desc').value, 180), 12, 77);
 
-        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 101, 190, 7, 'F'); doc.rect(10, 101, 190, 7);
         doc.text("4. IDENTIFICACIÓN", 15, 106);
-        doc.rect(10, 108, 190, 12); doc.line(105, 108, 105, 120);
-        doc.setFont("helvetica", "normal");
-        doc.text("NARRADOR: " + (document.getElementById('relator').value || "N/A"), 12, 115);
-        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 107, 115);
+        doc.rect(10, 108, 190, 12);
+        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 12, 115);
 
-        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 120, 190, 7, 'F'); doc.rect(10, 120, 190, 7);
         doc.text("3. REGISTRO FOTOGRÁFICO", 15, 125);
-        doc.rect(10, 127, 190, 110); 
         if (preview.style.display === 'block') {
             doc.addImage(preview.src, 'JPEG', 20, 132, 170, 100);
         }
-        doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
-    });
 
-    // --- REGISTRO SERVICE WORKER E AUTO-UPDATE ---
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then(reg => {
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        window.location.reload();
-                    }
-                });
+        // --- ENVIO ---
+        const pdfData = doc.output('arraybuffer');
+        const uint8 = new Uint8Array(pdfData);
+        const base64Data = btoa(String.fromCharCode.apply(null, uint8));
+
+        const payload = JSON.stringify({
+            name: `Reporte_${document.getElementById('fecha').value}_${Date.now()}.pdf`,
+            bytes: base64Data
+        });
+
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Importante para Google Script
+                body: payload
             });
-        });
-    }
+            
+            status.innerText = "✅ Enviado com sucesso ao Drive!";
+            status.style.color = "green";
+            doc.save(`Reporte_Elecnor.pdf`);
+        } catch (err) {
+            status.innerText = "❌ Erro ao enviar. Verifique internet.";
+            status.style.color = "red";
+        }
 
-    // Prompt de Instalação
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const installMsg = document.createElement('div');
-        installMsg.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--blue); color:white; padding:15px; border-radius:8px; z-index:1000; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); width:90%;";
-        installMsg.innerHTML = "<strong>¿Instalar App Elecnor?</strong><br><small>Uso rápido e offline</small><br><button id='btnInstall' style='margin-top:10px; padding:8px 20px; border:none; border-radius:5px; background:white; color:var(--blue); font-weight:bold;'>INSTALAR AHORA</button>";
-        document.body.appendChild(installMsg);
-        document.getElementById('btnInstall').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                installMsg.remove();
-            }
-        });
+        btn.disabled = false;
+        btn.innerText = "ENVIAR E GERAR PDF";
     });
 </script>
 </body>
