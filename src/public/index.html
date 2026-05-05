@@ -23,7 +23,7 @@
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
         .check-item input { width: auto; margin-right: 5px; }
         .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
-        #preview { width: 100%; max-height: 150px; object-fit: contain; display: none; margin-top: 10px; }
+        #preview { width: 100%; max-height: 180px; object-fit: contain; display: none; margin: 10px auto; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
         #statusMsg { font-size: 12px; text-align: center; padding: 10px; display: none; font-weight: bold; }
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
@@ -39,6 +39,7 @@
                 <td style="width: 25%; color: #0088cc;">HSS&S</td>
             </tr>
         </table>
+        
         <div class="section-header">1. CONTEXTO</div>
         <div class="row">
             <div class="cell"><label>FECHA:</label><input type="date" id="fecha" required></div>
@@ -67,26 +68,31 @@
                 </div>
             </div>
         </div>
-        <div class="section-header">2. DESCRIPCIÓN</div>
-        <div class="row"><div class="cell"><textarea id="desc" rows="3" placeholder="¿O que aconteceu?" required></textarea></div></div>
+
+        <div class="section-header">2. DESCRIPCIÓN DEL EVENTO</div>
+        <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="Descreva o que aconteceu..." required></textarea></div></div>
+
         <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
         <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 Capturar Foto</label>
+            <label style="cursor:pointer">📸 Toque para tirar ou selecionar foto</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
+
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
-            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Opcional"></div>
-            <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required></div>
+            <div class="cell"><label>RELATOR:</label><input type="text" id="relator" placeholder="Nombre (opcional)"></div>
+            <div class="cell"><label>SUPERVISOR:</label><input type="text" id="supervisor" required placeholder="Nombre del supervisor"></div>
         </div>
+
         <div id="statusMsg"></div>
-        <button type="submit" id="submitBtn" class="btn-submit">ENVIAR AO DRIVE E GERAR PDF</button>
+        <button type="submit" id="submitBtn" class="btn-submit">ENVIAR E GERAR PDF</button>
     </form>
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/elecnor.es/s/AKfycbyjIofGy0Fy9tXGl81QyirMgudoaSolJPYVWzxUUl2iV5-z99bFDOZL9C-2WQbTO1KF/exec';
+    // NOVA URL ATUALIZADA
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
@@ -120,7 +126,7 @@
         btn.disabled = true;
         btn.innerText = "ENVIANDO...";
         status.style.display = "block";
-        status.innerText = "⏳ Sincronizando com Drive...";
+        status.innerText = "⏳ Comprimindo e sincronizando...";
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -128,7 +134,7 @@
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
 
-        // --- Desenho do PDF (1 Página) ---
+        // --- Layout PDF ---
         doc.setLineWidth(0.4);
         doc.rect(10, 10, 190, 25); 
         doc.line(60, 10, 60, 35); doc.line(150, 10, 150, 35);
@@ -138,40 +144,54 @@
         
         doc.setFillColor(203, 213, 224);
         doc.rect(10, 35, 190, 7, 'F'); doc.rect(10, 35, 190, 7);
-        doc.setFontSize(9); doc.text("1. CONTEXTO", 15, 40);
+        doc.text("1. CONTEXTO", 15, 40);
         doc.rect(10, 42, 190, 22);
         doc.setFontSize(8); doc.setFont("helvetica", "normal");
         doc.text("FECHA: " + document.getElementById('fecha').value, 12, 49);
         doc.text("HORA: " + document.getElementById('hora').value, 107, 49);
         doc.text("DEPTO: " + document.getElementById('depto').value, 12, 60);
+        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
+        doc.text("ÁREAS: " + areas, 107, 60);
 
-        doc.setFillColor(203, 213, 224);
+        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 64, 190, 7, 'F'); doc.rect(10, 64, 190, 7);
         doc.text("2. DESCRIPCIÓN", 15, 69);
-        doc.rect(10, 71, 190, 30);
+        doc.rect(10, 71, 190, 30); doc.setFont("helvetica", "normal");
         doc.text(doc.splitTextToSize(document.getElementById('desc').value, 180), 12, 77);
 
+        doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
         doc.rect(10, 101, 190, 7, 'F'); doc.rect(10, 101, 190, 7);
         doc.text("4. IDENTIFICACIÓN", 15, 106);
-        doc.rect(10, 108, 190, 12);
-        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 12, 115);
+        doc.rect(10, 108, 190, 12); doc.setFont("helvetica", "normal");
+        doc.text("RELATOR: " + (document.getElementById('relator').value || "N/A"), 12, 115);
+        doc.text("SUPERVISOR: " + document.getElementById('supervisor').value, 107, 115);
 
-        doc.rect(10, 120, 190, 7, 'F'); doc.rect(10, 120, 190, 7);
-        doc.text("3. REGISTRO FOTOGRÁFICO", 15, 125);
+        // --- Foto com Compressão ---
         if (preview.style.display === 'block') {
-            doc.addImage(preview.src, 'JPEG', 20, 132, 170, 100);
+            doc.setFont("helvetica", "bold"); doc.setFillColor(203, 213, 224);
+            doc.rect(10, 120, 190, 7, 'F'); doc.rect(10, 120, 190, 7);
+            doc.text("3. REGISTRO FOTOGRÁFICO", 15, 125);
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.src = preview.src;
+            await new Promise(r => img.onload = r);
+            
+            const maxW = 800;
+            const scale = maxW / img.width;
+            canvas.width = maxW;
+            canvas.height = img.height * scale;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const compressedImg = canvas.toDataURL('image/jpeg', 0.7);
+            doc.addImage(compressedImg, 'JPEG', 20, 132, 170, 100);
         }
 
-        // --- Preparação para o envio ---
-        const pdfData = doc.output('arraybuffer');
-        const uint8 = new Uint8Array(pdfData);
-        let binary = '';
-        for (let i = 0; i < uint8.byteLength; i++) binary += String.fromCharCode(uint8[i]);
-        const base64Data = btoa(binary);
-
+        // --- Envio Binário para o Drive ---
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
         const payload = JSON.stringify({
             name: `Reporte_${document.getElementById('fecha').value}_${Date.now()}.pdf`,
-            bytes: base64Data
+            bytes: pdfBase64
         });
 
         try {
@@ -180,34 +200,23 @@
                 mode: 'no-cors',
                 body: payload
             });
-            status.innerText = "✅ Enviado com sucesso ao Drive!";
+            status.innerText = "✅ Enviado ao Drive com sucesso!";
             status.style.color = "green";
-            doc.save(`Reporte_Elecnor.pdf`);
+            doc.save(`Reporte_Elecnor_${document.getElementById('fecha').value}.pdf`);
         } catch (err) {
-            status.innerText = "❌ Erro ao enviar. Verifique a conexão.";
+            status.innerText = "❌ Erro ao enviar. PDF salvo localmente.";
             status.style.color = "red";
+            doc.save(`Reporte_Offline.pdf`);
         }
 
         btn.disabled = false;
-        btn.innerText = "ENVIAR AO DRIVE E GERAR PDF";
+        btn.innerText = "ENVIAR E GERAR PDF";
     });
 
-    // --- Service Worker e Instalação ---
+    // PWA: Registro do Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');
     }
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const installMsg = document.createElement('div');
-        installMsg.style = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--blue); color:white; padding:15px; border-radius:8px; z-index:1000; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.4); width:90%;";
-        installMsg.innerHTML = "<strong>Instalar App Elecnor?</strong><br><button id='btnInstall' style='margin-top:10px; padding:8px 20px; border:none; border-radius:5px; background:white; color:var(--blue); font-weight:bold;'>INSTALAR</button>";
-        document.body.appendChild(installMsg);
-        document.getElementById('btnInstall').addEventListener('click', () => {
-            if (deferredPrompt) { deferredPrompt.prompt(); installMsg.remove(); }
-        });
-    });
 </script>
 </body>
 </html>
