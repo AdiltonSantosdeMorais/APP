@@ -1,14 +1,17 @@
-const CACHE_NAME = 'hse-v10'; // Aumente este número sempre que mudar o código
+const CACHE_NAME = 'hse-v5';
 const ASSETS = [
   './',
   './index.html',
+  './manifest.json',
   './logo-elecnor.png',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Força a nova versão a ativar imediatamente
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
 });
 
 self.addEventListener('activate', (e) => {
@@ -20,5 +23,7 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+  e.respondWith(
+    caches.match(e.request).then(res => res || fetch(e.request))
+  );
 });
