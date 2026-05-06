@@ -10,25 +10,36 @@
         :root { --blue: #003366; --gray: #cbd5e0; --light-gray: #f0f2f5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
+        
         .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
-        input[type="time"], input[type="date"], select, input[type="text"], textarea { font-size: 16px !important; padding: 12px; border-radius: 4px; border: 1px solid #ccc; width: 100%; background: #fff; appearance: none; -webkit-appearance: none; }
+        
+        input[type="time"], input[type="date"], select, input[type="text"], textarea { 
+            font-size: 16px !important; padding: 12px; border-radius: 4px; border: 1px solid #ccc; width: 100%; background: #fff; appearance: none; -webkit-appearance: none; 
+        }
+
         .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; }
         .logo-img { width: 60px; height: auto; }
         .tech-info { text-align: left !important; font-size: 7px !important; line-height: 1.2; }
+
         .section-header { background: var(--gray); border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 50%; }
         label { font-size: 9px; font-weight: bold; margin-bottom: 4px; color: var(--blue); }
+
         .media-actions { display: flex; gap: 10px; padding: 10px; background: #fff; }
         .btn-media { flex: 1; padding: 12px; border: 1px solid var(--blue); background: #f8f9fa; border-radius: 5px; font-weight: bold; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        
         #drawing-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; flex-direction: column; }
         #canvas-paint { background: #fff; touch-action: none; flex-grow: 1; width: 100%; }
         .paint-controls { background: var(--blue); padding: 15px; display: flex; justify-content: space-around; }
+
         #preview { width: 100%; max-height: 350px; object-fit: contain; display: none; margin: 10px 0; border: 1px solid #000; background: #eee; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
+        
         #statusMsg { font-size: 13px; text-align: center; padding: 15px; font-weight: bold; }
         #syncBanner { background: #44bb44; color: white; text-align: center; font-size: 11px; padding: 8px; display: none; position: sticky; top: 0; z-index: 100; }
+        
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; } }
     </style>
 </head>
@@ -108,15 +119,12 @@
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
     
-    // VARIÁVEL PARA ARMAZENAR A LOGO JÁ PROCESSADA
     let logoDataUrl = "";
 
-    // FUNÇÃO QUE PREPARA A LOGO ASSIM QUE O APP ABRE
+    // 1. Pré-carregamento da Logo para o PDF
     function prepararLogo() {
         const img = document.getElementById('logoImg');
         const canvasLogo = document.createElement('canvas');
-        
-        // Função interna para processar
         const processar = () => {
             canvasLogo.width = img.naturalWidth;
             canvasLogo.height = img.naturalHeight;
@@ -124,17 +132,9 @@
             ctxLogo.drawImage(img, 0, 0);
             try {
                 logoDataUrl = canvasLogo.toDataURL('image/png');
-                console.log("Logo pronta para o PDF");
-            } catch (e) {
-                console.error("Erro ao converter logo:", e);
-            }
+            } catch (e) { console.error("Erro logo:", e); }
         };
-
-        if (img.complete) {
-            processar();
-        } else {
-            img.onload = processar;
-        }
+        if (img.complete) processar(); else img.onload = processar;
     }
 
     window.onload = function() {
@@ -144,6 +144,7 @@
 
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(e => console.log(e)); }
 
+    // 2. Sincronização Automática
     async function syncQueue() {
         if (!navigator.onLine) return;
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
@@ -207,6 +208,7 @@
     window.addEventListener('mouseup', endDraw);
     window.addEventListener('touchend', endDraw);
 
+    // 3. Geração de PDF IDÊNTICO
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -214,22 +216,19 @@
         
         btn.disabled = true;
         status.style.display = "block"; status.style.color = "orange";
-        status.innerText = "⏳ GENERANDO REPORTE...";
+        status.innerText = "⏳ PROCESANDO REPORTE...";
 
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-
-            // 1. CABEÇALHO COM LOGO
-            doc.setLineWidth(0.3);
+            
+            // --- CABEÇALHO ---
+            doc.setLineWidth(0.5);
             doc.rect(10, 10, 190, 25); 
             doc.line(50, 10, 50, 35);
             doc.line(150, 10, 150, 35);
             
-            // INSERIR LOGO SE ESTIVER DISPONÍVEL
-            if (logoDataUrl) {
-                doc.addImage(logoDataUrl, 'PNG', 15, 13, 30, 18);
-            }
+            if (logoDataUrl) doc.addImage(logoDataUrl, 'PNG', 15, 13, 30, 18);
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(10);
@@ -242,61 +241,70 @@
             doc.text("PÁGINA: 1 DE 1", 152, 28);
             doc.text("REVISIÓN: 00", 152, 34);
 
-            // 2. CONTEXTO
+            // 1. CONTEXTO
+            let y = 35;
             doc.setFillColor(203, 213, 224); 
-            doc.rect(10, 35, 190, 7, 'F');
-            doc.rect(10, 35, 190, 7); 
+            doc.rect(10, y, 190, 7, 'FD'); 
             doc.setFontSize(8);
-            doc.text("1. CONTEXTO", 12, 39.5);
+            doc.text("1. CONTEXTO", 12, y + 5);
 
-            doc.rect(10, 42, 95, 12); doc.rect(105, 42, 95, 12); 
+            y += 7;
+            doc.rect(10, y, 95, 12); doc.rect(105, y, 95, 12); 
             doc.setFontSize(6);
-            doc.text("FECHA:", 11, 45); doc.text("HORA:", 106, 45);
+            doc.text("FECHA:", 11, y + 4); doc.text("HORA:", 106, y + 4);
             doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-            doc.text(document.getElementById('fecha').value, 11, 51);
-            doc.text(document.getElementById('hora').value, 106, 51);
+            doc.text(document.getElementById('fecha').value, 11, y + 10);
+            doc.text(document.getElementById('hora').value, 106, y + 10);
 
-            doc.rect(10, 54, 190, 12);
+            y += 12;
+            doc.rect(10, y, 190, 12);
             doc.setFont("helvetica", "bold"); doc.setFontSize(6);
-            doc.text("DEPARTAMENTO:", 11, 57);
-            doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-            doc.text(document.getElementById('depto').value, 11, 63);
+            doc.text("DEPARTAMENTO:", 11, y + 4);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+            doc.text(document.getElementById('depto').value, 11, y + 10);
 
-            // 3. DESCRIPCIÓN
+            // 2. DESCRIPCIÓN
+            y += 12;
             doc.setFillColor(203, 213, 224);
-            doc.rect(10, 66, 190, 7, 'F'); doc.rect(10, 66, 190, 7);
+            doc.rect(10, y, 190, 7, 'FD');
             doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-            doc.text("2. DESCRIPCIÓN DO EVENTO", 12, 70.5);
+            doc.text("2. DESCRIPCIÓN DO EVENTO", 12, y + 5);
 
-            doc.rect(10, 73, 190, 35);
+            y += 7;
+            doc.rect(10, y, 190, 35);
             doc.setFont("helvetica", "normal"); doc.setFontSize(9);
             const descLines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
-            doc.text(descLines, 11, 79);
+            doc.text(descLines, 11, y + 6);
 
-            // 4. REGISTRO
+            // 3. REGISTRO
+            y += 35;
             doc.setFillColor(203, 213, 224);
-            doc.rect(10, 108, 190, 7, 'F'); doc.rect(10, 108, 190, 7);
+            doc.rect(10, y, 190, 7, 'FD');
             doc.setFont("helvetica", "bold");
-            doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 112.5);
+            doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, y + 5);
 
-            doc.rect(10, 115, 190, 105);
+            y += 7;
+            doc.rect(10, y, 190, 100);
             if(preview.src && preview.src.startsWith('data:image')) {
-                doc.addImage(preview.src, 'JPEG', 15, 120, 180, 95);
+                doc.addImage(preview.src, 'JPEG', 12, y + 2, 186, 96);
             }
 
-            // 5. IDENTIFICAÇÃO
+            // 4. IDENTIFICACIÓN
+            y += 100;
             doc.setFillColor(203, 213, 224);
-            doc.rect(10, 220, 190, 7, 'F'); doc.rect(10, 220, 190, 7);
+            doc.rect(10, y, 190, 7, 'FD');
             doc.setFont("helvetica", "bold");
-            doc.text("4. IDENTIFICACIÓN", 12, 224.5);
+            doc.text("4. IDENTIFICACIÓN", 12, y + 5);
 
-            doc.rect(10, 227, 95, 15); doc.rect(105, 227, 95, 15); 
+            y += 7;
+            doc.rect(10, y, 95, 15); doc.rect(105, y, 95, 15); 
             doc.setFontSize(6);
-            doc.text("NOMBRE Y APELLIDO:", 11, 230); doc.text("EMPRESA:", 106, 230);
+            doc.text("NOMBRE Y APELLIDO:", 11, y + 4); doc.text("EMPRESA:", 106, y + 4);
             doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-            doc.text(document.getElementById('relator').value.toUpperCase(), 11, 238);
-            doc.text(document.getElementById('empresa').value.toUpperCase(), 106, 238);
+            doc.text(document.getElementById('relator').value.toUpperCase(), 11, y + 11);
+            doc.text(document.getElementById('empresa').value.toUpperCase(), 106, y + 11);
 
+            // ENVIO
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             const relatorNome = document.getElementById('relator').value.toUpperCase();
             const fileName = `${relatorNome}_REPORTE.pdf`;
@@ -316,7 +324,6 @@
             doc.save(fileName);
             form.reset(); preview.style.display = 'none';
         } catch (err) {
-            console.error(err);
             status.innerText = "❌ ERROR AL GENERAR PDF.";
         }
         btn.disabled = false;
