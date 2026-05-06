@@ -2,49 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>HSE ELECNOR - PROYECTO COPIAPÓ SOLAR</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; --light-gray: #f0f2f5; }
-        body { font-family: Arial, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
-        .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; box-sizing: border-box; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
         
-        /* CABECERA TÉCNICA */
-        .header-table { width: 100%; border-collapse: collapse; }
-        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; }
-        .logo-img { width: 70px; height: auto; }
-        .tech-info { text-align: left !important; font-size: 8px !important; line-height: 1.3; padding-left: 8px !important; }
-        
-        .section-header { background: var(--gray); border: 1px solid #000; padding: 8px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        /* Ajuste Responsivo Android/iOS */
+        input[type="time"], input[type="date"] {
+            appearance: none;
+            -webkit-appearance: none;
+            min-height: 40px;
+            background: #fff;
+            border: 1px solid #ddd !important;
+            padding: 8px !important;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; }
+        .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; overflow: hidden; }
+        .logo-img { width: 60px; height: auto; }
+        .tech-info { text-align: left !important; font-size: 7px !important; line-height: 1.2; }
+
+        .section-header { background: var(--gray); border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
-        .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 140px; box-sizing: border-box; }
+        .cell { border-right: 1px solid #000; padding: 12px; display: flex; flex-direction: column; flex: 1; min-width: 150px; }
         .cell:last-child { border-right: none; }
         
-        label { font-size: 10px; font-weight: bold; margin-bottom: 4px; color: var(--blue); text-transform: uppercase; }
-        input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; font-family: inherit; text-transform: uppercase; color: #000; }
+        label { font-size: 10px; font-weight: bold; margin-bottom: 6px; color: var(--blue); text-transform: uppercase; }
+        input, textarea, select { border: none; outline: none; font-size: 14px; background: transparent; width: 100%; color: #000; }
         
-        .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 5px; width: 100%; padding: 5px 0; }
+        .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; width: 100%; padding: 5px 0; }
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
-        .check-item input { width: auto; margin-right: 5px; }
+
+        /* Estilos do Canvas de Desenho */
+        #drawing-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; }
+        #canvas-paint { background: white; touch-action: none; cursor: crosshair; flex-grow: 1; width: 100%; }
+        .paint-controls { background: #333; padding: 15px; display: flex; justify-content: space-around; gap: 10px; }
+        .paint-btn { padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        .photo-upload { padding: 15px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; border-radius: 4px; }
-        #preview { width: 100%; max-height: 250px; object-fit: contain; display: none; margin-top: 10px; border: 1px solid #000; }
-        
-        .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; margin-top: auto; }
-        #statusMsg { font-size: 12px; text-align: center; padding: 10px; display: none; font-weight: bold; }
-        
+        .photo-upload { padding: 20px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; }
+        #preview { width: 100%; max-height: 300px; object-fit: contain; display: none; margin-top: 10px; border: 1px solid #000; }
+
+        .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: auto; }
+        #statusMsg { font-size: 12px; text-align: center; padding: 15px; display: none; font-weight: bold; }
+
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; border-bottom: 1px solid #000; } }
     </style>
 </head>
 <body>
+
 <div class="app-container">
     <form id="hSEForm">
         <table class="header-table">
             <tr>
                 <td style="width: 20%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
-                <td style="width: 50%; font-size: 13px;">FORMULARIO NEARMISS<br>PROYECTO COPIAPÓ SOLAR</td>
+                <td style="width: 50%;">FORMULARIO NEARMISS<br>PROYECTO COPIAPÓ SOLAR</td>
                 <td style="width: 30%;" class="tech-info">
                     CÓDIGO: <br> FECHA: <br> PÁGINA: 1 DE 1 <br> REVISIÓN: 00 <br> CATEGORÍA: GENERAL <br> SECTOR: SEGURIDAD
                 </td>
@@ -95,9 +113,9 @@
         <div class="section-header">2. DESCRIPCIÓN DEL EVENTO / HALLAZGO</div>
         <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="DESCRIBA LO SUCEDIDO..." required></textarea></div></div>
 
-        <div class="section-header">3. REGISTRO FOTOGRÁFICO</div>
-        <div class="photo-upload" onclick="document.getElementById('foto').click()">
-            <label style="cursor:pointer">📸 TOQUE PARA CAPTURAR O SELECCIONAR FOTO</label>
+        <div class="section-header">3. REGISTRO FOTOGRÁFICO (CON DIBUJO)</div>
+        <div class="photo-upload" id="upload-trigger">
+            <label style="cursor:pointer">📸 TOQUE PARA CAPTURAR Y DIBUJAR</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
             <img id="preview">
         </div>
@@ -113,12 +131,31 @@
     </form>
 </div>
 
+<div id="drawing-container">
+    <canvas id="canvas-paint"></canvas>
+    <div class="paint-controls">
+        <button class="paint-btn" style="background:#ff4444; color:white" id="cancel-paint">CANCELAR</button>
+        <button class="paint-btn" style="background:#44bb44; color:white" id="save-paint">GUARDAR DIBUJO</button>
+    </div>
+</div>
+
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
+
+    // 1. SERVICE WORKER PARA ANDROID/IOS OFFLINE
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(e => console.log(e));
+        });
+    }
 
     const form = document.getElementById('hSEForm');
     const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
+    const drawingContainer = document.getElementById('drawing-container');
+    const canvas = document.getElementById('canvas-paint');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
 
     // --- LÓGICA DE FILA OFFLINE ---
     function saveToQueue(data) {
@@ -132,7 +169,6 @@
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         if (queue.length === 0) return;
 
-        console.log("Sincronizando itens pendentes...");
         for (let i = 0; i < queue.length; i++) {
             try {
                 await fetch(GOOGLE_SCRIPT_URL, { 
@@ -142,7 +178,7 @@
                 });
                 queue.splice(i, 1);
                 i--;
-            } catch (e) { console.error("Erro na sync", e); }
+            } catch (e) { break; }
         }
         localStorage.setItem('hse_queue', JSON.stringify(queue));
     }
@@ -150,16 +186,65 @@
     window.addEventListener('online', syncQueue);
     window.addEventListener('load', syncQueue);
 
-    // --- CÂMERA E PDF ---
-    fotoInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
-            reader.readAsDataURL(file);
-        }
+    // --- LÓGICA DE DESENHO SOBRE FOTO ---
+    document.getElementById('upload-trigger').onclick = () => fotoInput.click();
+
+    fotoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                drawingContainer.style.display = 'flex';
+                // Ajustar canvas ao tamanho da tela mantendo proporção da imagem
+                const ratio = img.width / img.height;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerWidth / ratio;
+                if(canvas.height > window.innerHeight * 0.8) {
+                    canvas.height = window.innerHeight * 0.8;
+                    canvas.width = canvas.height * ratio;
+                }
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 4;
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
     });
 
+    // Funções de Pintura (Touch e Mouse)
+    function startPosition(e) { painting = true; draw(e); }
+    function finishedPosition() { painting = false; ctx.beginPath(); }
+    function draw(e) {
+        if (!painting) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('touchstart', startPosition);
+    window.addEventListener('mouseup', finishedPosition);
+    window.addEventListener('touchend', finishedPosition);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
+
+    document.getElementById('cancel-paint').onclick = () => { drawingContainer.style.display = 'none'; fotoInput.value = ""; };
+    document.getElementById('save-paint').onclick = () => {
+        preview.src = canvas.toDataURL('image/jpeg', 0.7);
+        preview.style.display = 'block';
+        drawingContainer.style.display = 'none';
+    };
+
+    // --- GERAÇÃO DE PDF E ENVIO ---
     async function getLogoBase64(url) {
         try {
             const response = await fetch(url);
@@ -188,7 +273,7 @@
         const corDeFundo = [203, 213, 224];
         const corDoRotulo = [0, 51, 102];
 
-        // --- PDF LAYOUT ---
+        // --- PDF LAYOUT IDÊNTICO ---
         doc.setLineWidth(0.5);
         doc.rect(10, 10, 190, 25); 
         doc.line(50, 10, 50, 35); doc.line(150, 10, 150, 35);
@@ -218,19 +303,12 @@
         const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
         doc.text(lines, 12, 82);
 
-        // Seção 3
+        // Seção 3 (Foto com desenhos)
         doc.setFillColor(...corDeFundo); doc.rect(10, 110, 190, 8, 'F'); doc.rect(10, 110, 190, 8);
         doc.text("3. REGISTRO FOTOGRÁFICO", 12, 116);
         doc.rect(10, 118, 190, 105);
-        if (preview.style.display === 'block') {
-            const canvas = document.createElement('canvas');
-            const img = new Image();
-            img.src = preview.src;
-            await new Promise(r => img.onload = r);
-            const scale = 800 / img.width;
-            canvas.width = 800; canvas.height = img.height * scale;
-            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-            doc.addImage(canvas.toDataURL('image/jpeg', 0.7), 'JPEG', 15, 122, 180, 95);
+        if (preview.src && preview.style.display !== 'none') {
+            doc.addImage(preview.src, 'JPEG', 15, 122, 180, 95);
         }
 
         // Seção 4
@@ -245,11 +323,11 @@
         const fileName = `${relatorNome}_${document.getElementById('fecha').value}.pdf`;
         const payload = { name: fileName, bytes: pdfBase64 };
 
-        // --- LÓGICA DE ENVIO INTELIGENTE ---
+        // ENVIO COM FILA
         if (navigator.onLine) {
             try {
                 await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                status.innerText = "✅ ¡ENVIADO EXITOSAMENTE AL DRIVE!";
+                status.innerText = "✅ ¡ENVIADO EXITOSAMENTE AO DRIVE!";
                 status.style.color = "green";
             } catch (err) {
                 saveToQueue(payload);
