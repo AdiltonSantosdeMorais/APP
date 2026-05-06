@@ -9,10 +9,11 @@
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; --light-gray: #f0f2f5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
+        
+        /* Ajuste de Responsividade iOS/Android */
         .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         
-        /* Ajuste de responsividade para iOS/Android */
         input[type="time"], input[type="date"], select, input[type="text"], textarea { 
             font-size: 16px !important; padding: 12px; border-radius: 4px; border: 1px solid #ccc; width: 100%; background: #fff; appearance: none; -webkit-appearance: none; 
         }
@@ -34,11 +35,11 @@
         #canvas-paint { background: #fff; touch-action: none; flex-grow: 1; width: 100%; }
         .paint-controls { background: var(--blue); padding: 15px; display: flex; justify-content: space-around; }
 
-        #preview { width: 100%; max-height: 350px; object-fit: contain; display: none; margin: 10px 0; border: 1px solid #000; background: #eee; }
+        #preview { width: 100%; max-height: 350px; object-fit: contain; display: none; margin: 10px 0; border: 1px solid #000; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
         
-        #statusMsg { font-size: 13px; text-align: center; padding: 15px; font-weight: bold; display: none; }
-        #syncBanner { background: #44bb44; color: white; text-align: center; font-size: 11px; padding: 8px; display: none; position: sticky; top: 0; z-index: 100; }
+        #statusMsg { font-size: 13px; text-align: center; padding: 15px; font-weight: bold; }
+        #syncBanner { background: #44bb44; color: white; text-align: center; font-size: 11px; padding: 8px; display: none; }
         
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; } }
     </style>
@@ -63,8 +64,7 @@
             <div class="cell"><label>HORA:</label><input type="time" id="hora" required></div>
         </div>
         <div class="row">
-            <div class="cell">
-                <label>DEPARTAMENTO:</label>
+            <div class="cell"><label>DEPARTAMENTO:</label>
                 <select id="depto" required>
                     <option value="">SELECCIONE...</option>
                     <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
@@ -84,6 +84,18 @@
                     <option value="RR. HH.">RR. HH.</option>
                     <option value="SUBCONTRATADA">SUBCONTRATADA</option>
                 </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="cell"><label>ÁREA ESPECÍFICA:</label>
+                <div class="area-grid">
+                    <label class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="PV"> PV</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="BESS"> BESS</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="SE C.P"> SE C.P</label>
+                    <label class="check-item"><input type="checkbox" name="area" value="SE ELE"> SE ELE</label>
+                </div>
             </div>
         </div>
 
@@ -118,36 +130,29 @@
 </div>
 
 <script>
-    // URL DO GOOGLE SCRIPT (Verifique se é a versão /exec mais recente)
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
-    // AUTO-SYNC LÓGICA
+    // Registro SW
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(e => console.log(e)); }
+
+    // FILA OFFLINE AUTO-SYNC
     async function syncQueue() {
         if (!navigator.onLine) return;
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         if (queue.length === 0) return;
 
         document.getElementById('syncBanner').style.display = 'block';
-
         for (let i = 0; i < queue.length; i++) {
             try {
-                await fetch(GOOGLE_SCRIPT_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(queue[i]) 
-                });
-                queue.splice(i, 1);
-                i--;
+                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(queue[i]) });
+                queue.splice(i, 1); i--;
                 localStorage.setItem('hse_queue', JSON.stringify(queue));
-            } catch (e) { console.log("Erro sync", e); }
+            } catch (e) { console.log("Sync failed", e); }
         }
-        if(queue.length === 0) document.getElementById('syncBanner').style.display = 'none';
+        document.getElementById('syncBanner').style.display = 'none';
     }
-
     window.addEventListener('online', syncQueue);
-    setInterval(syncQueue, 30000); 
-
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+    setInterval(syncQueue, 30000);
 
     const form = document.getElementById('hSEForm');
     const fotoInput = document.getElementById('foto');
@@ -156,15 +161,12 @@
     const ctx = canvas.getContext('2d');
     let painting = false;
 
-    // Foto Handling
+    // Foto adjuntar imediato
     fotoInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                preview.src = event.target.result;
-                preview.style.display = 'block';
-            };
+            reader.onload = (ev) => { preview.src = ev.target.result; preview.style.display = 'block'; };
             reader.readAsDataURL(file);
         }
     });
@@ -173,10 +175,8 @@
         document.getElementById('drawing-container').style.display = 'flex';
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight - 80;
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 3;
+        ctx.fillStyle = "white"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "red"; ctx.lineWidth = 3; ctx.lineCap = "round";
     }
 
     function cerrarDibujo() { document.getElementById('drawing-container').style.display = 'none'; }
@@ -193,10 +193,7 @@
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
         const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, y);
+        ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
     }
     canvas.addEventListener('mousedown', startDraw);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, {passive: false});
@@ -205,7 +202,7 @@
     window.addEventListener('mouseup', endDraw);
     window.addEventListener('touchend', endDraw);
 
-    // SUBMIT FORM
+    // Envio do Form
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -213,50 +210,42 @@
         const relatorNome = document.getElementById('relator').value.toUpperCase();
         
         btn.disabled = true;
-        status.style.display = "block";
-        status.style.color = "orange";
+        status.style.display = "block"; status.style.color = "orange";
         status.innerText = "⏳ PROCESANDO...";
 
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             
-            // Desenho do PDF
+            // PDF Simples para evitar erro de memória
             doc.rect(10, 10, 190, 25);
-            doc.setFontSize(12);
             doc.text("FORMULARIO NEARMISS", 100, 22, { align: "center" });
+            doc.setFontSize(10);
+            doc.text(`Relator: ${relatorNome}`, 15, 45);
+            doc.text(`Empresa: ${document.getElementById('empresa').value.toUpperCase()}`, 15, 52);
+            doc.text(`Fecha/Hora: ${document.getElementById('fecha').value} ${document.getElementById('hora').value}`, 15, 59);
             
-            // Se houver imagem
-            if(preview.src && preview.src.length > 100) {
-                doc.addImage(preview.src, 'JPEG', 15, 120, 180, 95);
+            if(preview.src && preview.src.startsWith('data:image')) {
+                doc.addImage(preview.src, 'JPEG', 15, 110, 180, 100);
             }
 
             const pdfBase64 = doc.output('datauristring').split(',')[1];
-            const fileName = `${relatorNome}_${Date.now()}.pdf`;
-            const payload = { name: fileName, bytes: pdfBase64 };
+            const payload = { name: `${relatorNome}_${Date.now()}.pdf`, bytes: pdfBase64 };
 
             if (navigator.onLine) {
-                await fetch(GOOGLE_SCRIPT_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(payload) 
-                });
-                status.innerText = "✅ ENVIADO EXITOSAMENTE!";
+                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                status.innerText = "✅ ¡ENVIADO EXITOSAMENTE!";
                 status.style.color = "green";
             } else {
-                let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
-                queue.push(payload);
-                localStorage.setItem('hse_queue', JSON.stringify(queue));
-                status.innerText = "☁️ OFFLINE: GUARDADO.";
+                let q = JSON.parse(localStorage.getItem('hse_queue') || '[]');
+                q.push(payload); localStorage.setItem('hse_queue', JSON.stringify(q));
+                status.innerText = "☁️ OFFLINE: GUARDADO PARA SYNC.";
                 status.style.color = "blue";
             }
 
-            doc.save(fileName);
-            this.reset();
-            preview.style.display = 'none';
-            preview.src = "";
+            doc.save(payload.name);
+            form.reset(); preview.style.display = 'none'; preview.src = "";
         } catch (err) {
-            console.error(err);
             status.innerText = "❌ ERROR AL GENERAR.";
         }
         btn.disabled = false;
