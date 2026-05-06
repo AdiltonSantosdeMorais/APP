@@ -113,15 +113,12 @@
         <div class="section-header">2. DESCRIPCIÓN DEL EVENTO / HALLAZGO</div>
         <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="DESCRIBA LO SUCEDIDO..." required></textarea></div></div>
 
-        <div class="section-header">3. REGISTRO FOTOGRÁFICO / DIBUJO</div>
+        <div class="section-header">3. REGISTRO FOTOGRÁFICO (CON DIBUJO)</div>
         <div class="photo-upload" id="upload-trigger">
-            <label style="cursor:pointer">📸 TOQUE PARA CAPTURAR FOTO</label>
+            <label style="cursor:pointer">📸 TOQUE PARA CAPTURAR Y DIBUJAR</label>
             <input type="file" id="foto" accept="image/*" style="display:none;">
+            <img id="preview">
         </div>
-        <div style="text-align: center; padding: 10px;">
-            <button type="button" class="paint-btn" style="background: var(--blue); color: white; width: 90%;" onclick="iniciarDesenhoBranco()">🎨 REALIZAR DIBUJO EN BLANCO</button>
-        </div>
-        <img id="preview">
 
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
@@ -189,7 +186,7 @@
     window.addEventListener('online', syncQueue);
     window.addEventListener('load', syncQueue);
 
-    // --- LÓGICA DE FOTO (SEM DESENHO SOBRE ELA) ---
+    // --- LÓGICA DE DESENHO SOBRE FOTO ---
     document.getElementById('upload-trigger').onclick = () => fotoInput.click();
 
     fotoInput.addEventListener('change', function(e) {
@@ -197,24 +194,27 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(event) {
-            preview.src = event.target.result;
-            preview.style.display = 'block';
+            const img = new Image();
+            img.onload = function() {
+                drawingContainer.style.display = 'flex';
+                // Ajustar canvas ao tamanho da tela mantendo proporção da imagem
+                const ratio = img.width / img.height;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerWidth / ratio;
+                if(canvas.height > window.innerHeight * 0.8) {
+                    canvas.height = window.innerHeight * 0.8;
+                    canvas.width = canvas.height * ratio;
+                }
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 4;
+                ctx.lineJoin = "round";
+                ctx.lineCap = "round";
+            };
+            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
-
-    // --- LÓGICA DE DESENHO EM BRANCO ---
-    function iniciarDesenhoBranco() {
-        drawingContainer.style.display = 'flex';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight * 0.8;
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 4;
-        ctx.lineJoin = "round";
-        ctx.lineCap = "round";
-    }
 
     // Funções de Pintura (Touch e Mouse)
     function startPosition(e) { painting = true; draw(e); }
@@ -222,10 +222,8 @@
     function draw(e) {
         if (!painting) return;
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-        const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
+        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+        const y = (e.clientY || e.touches[0].clientY) - rect.top;
         ctx.lineTo(x, y);
         ctx.stroke();
         ctx.beginPath();
@@ -233,18 +231,17 @@
     }
 
     canvas.addEventListener('mousedown', startPosition);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
+    canvas.addEventListener('touchstart', startPosition);
     window.addEventListener('mouseup', finishedPosition);
     window.addEventListener('touchend', finishedPosition);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
 
-    document.getElementById('cancel-paint').onclick = () => { drawingContainer.style.display = 'none'; };
+    document.getElementById('cancel-paint').onclick = () => { drawingContainer.style.display = 'none'; fotoInput.value = ""; };
     document.getElementById('save-paint').onclick = () => {
         preview.src = canvas.toDataURL('image/jpeg', 0.7);
         preview.style.display = 'block';
         drawingContainer.style.display = 'none';
-        fotoInput.value = ""; 
     };
 
     // --- GERAÇÃO DE PDF E ENVIO ---
@@ -306,7 +303,7 @@
         const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
         doc.text(lines, 12, 82);
 
-        // Seção 3
+        // Seção 3 (Foto com desenhos)
         doc.setFillColor(...corDeFundo); doc.rect(10, 110, 190, 8, 'F'); doc.rect(10, 110, 190, 8);
         doc.text("3. REGISTRO FOTOGRÁFICO", 12, 116);
         doc.rect(10, 118, 190, 105);
