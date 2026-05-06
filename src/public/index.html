@@ -9,38 +9,26 @@
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; --light-gray: #f0f2f5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
-        
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
         .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
-        
-        /* Responsividade iOS/Android */
-        input[type="time"], input[type="date"], select, input[type="text"], textarea { 
-            font-size: 16px !important; padding: 12px; border-radius: 4px; border: 1px solid #ccc; width: 100%; background: #fff; appearance: none; -webkit-appearance: none; 
-        }
-
+        input[type="time"], input[type="date"], select, input[type="text"], textarea { font-size: 16px !important; padding: 12px; border-radius: 4px; border: 1px solid #ccc; width: 100%; background: #fff; appearance: none; -webkit-appearance: none; }
         .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; }
         .logo-img { width: 60px; height: auto; }
         .tech-info { text-align: left !important; font-size: 7px !important; line-height: 1.2; }
-
         .section-header { background: var(--gray); border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 50%; }
         label { font-size: 9px; font-weight: bold; margin-bottom: 4px; color: var(--blue); }
-
         .media-actions { display: flex; gap: 10px; padding: 10px; background: #fff; }
         .btn-media { flex: 1; padding: 12px; border: 1px solid var(--blue); background: #f8f9fa; border-radius: 5px; font-weight: bold; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        
         #drawing-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; flex-direction: column; }
         #canvas-paint { background: #fff; touch-action: none; flex-grow: 1; width: 100%; }
         .paint-controls { background: var(--blue); padding: 15px; display: flex; justify-content: space-around; }
-
         #preview { width: 100%; max-height: 350px; object-fit: contain; display: none; margin: 10px 0; border: 1px solid #000; background: #eee; }
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
-        
         #statusMsg { font-size: 13px; text-align: center; padding: 15px; font-weight: bold; }
         #syncBanner { background: #44bb44; color: white; text-align: center; font-size: 11px; padding: 8px; display: none; position: sticky; top: 0; z-index: 100; }
-        
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; } }
     </style>
 </head>
@@ -119,67 +107,71 @@
 
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
+    
+    // VARIÁVEL PARA ARMAZENAR A LOGO JÁ PROCESSADA
+    let logoDataUrl = "";
 
-    let logoBase64 = "";
-
-    // 1. Converte a logo para Base64 no carregamento (Fix da Logo no PDF)
-    window.onload = function() {
+    // FUNÇÃO QUE PREPARA A LOGO ASSIM QUE O APP ABRE
+    function prepararLogo() {
         const img = document.getElementById('logoImg');
         const canvasLogo = document.createElement('canvas');
-        img.onload = function() {
-            canvasLogo.width = img.width;
-            canvasLogo.height = img.height;
+        
+        // Função interna para processar
+        const processar = () => {
+            canvasLogo.width = img.naturalWidth;
+            canvasLogo.height = img.naturalHeight;
             const ctxLogo = canvasLogo.getContext('2d');
             ctxLogo.drawImage(img, 0, 0);
-            logoBase64 = canvasLogo.toDataURL('image/png');
+            try {
+                logoDataUrl = canvasLogo.toDataURL('image/png');
+                console.log("Logo pronta para o PDF");
+            } catch (e) {
+                console.error("Erro ao converter logo:", e);
+            }
         };
-        if (img.complete) img.onload();
+
+        if (img.complete) {
+            processar();
+        } else {
+            img.onload = processar;
+        }
+    }
+
+    window.onload = function() {
+        prepararLogo();
         syncQueue();
     };
 
-    // 2. Lógica de Fila Offline e Auto-Sync
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(e => console.log(e)); }
+
     async function syncQueue() {
         if (!navigator.onLine) return;
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         if (queue.length === 0) return;
-
         document.getElementById('syncBanner').style.display = 'block';
         for (let i = 0; i < queue.length; i++) {
             try {
-                await fetch(GOOGLE_SCRIPT_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(queue[i]) 
-                });
-                queue.splice(i, 1);
-                i--;
+                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(queue[i]) });
+                queue.splice(i, 1); i--;
                 localStorage.setItem('hse_queue', JSON.stringify(queue));
-            } catch (e) { console.log("Erro sync", e); }
+            } catch (e) { console.log("Sync failed", e); }
         }
         document.getElementById('syncBanner').style.display = 'none';
     }
-
     window.addEventListener('online', syncQueue);
-    setInterval(syncQueue, 30000); 
-
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+    setInterval(syncQueue, 30000);
 
     const form = document.getElementById('hSEForm');
-    const fotoInput = document.getElementById('foto');
     const preview = document.getElementById('preview');
     const canvas = document.getElementById('canvas-paint');
     const ctx = canvas.getContext('2d');
     let painting = false;
 
-    // Foto Handling
-    fotoInput.addEventListener('change', function(e) {
+    document.getElementById('foto').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                preview.src = ev.target.result;
-                preview.style.display = 'block';
-            };
+            reader.onload = (ev) => { preview.src = ev.target.result; preview.style.display = 'block'; };
             reader.readAsDataURL(file);
         }
     });
@@ -188,11 +180,8 @@
         document.getElementById('drawing-container').style.display = 'flex';
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight - 80;
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
+        ctx.fillStyle = "white"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "red"; ctx.lineWidth = 3; ctx.lineCap = "round";
     }
 
     function cerrarDibujo() { document.getElementById('drawing-container').style.display = 'none'; }
@@ -202,7 +191,6 @@
         cerrarDibujo();
     }
 
-    // Funções de desenho
     function startDraw(e) { painting = true; draw(e); }
     function endDraw() { painting = false; ctx.beginPath(); }
     function draw(e) {
@@ -210,10 +198,7 @@
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
         const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x, y);
+        ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
     }
     canvas.addEventListener('mousedown', startDraw);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, {passive: false});
@@ -222,29 +207,29 @@
     window.addEventListener('mouseup', endDraw);
     window.addEventListener('touchend', endDraw);
 
-    // 3. Geração de PDF Idêntico e Envio
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const status = document.getElementById('statusMsg');
-        const relatorNome = document.getElementById('relator').value.toUpperCase();
         
         btn.disabled = true;
-        status.style.display = "block";
-        status.style.color = "orange";
+        status.style.display = "block"; status.style.color = "orange";
         status.innerText = "⏳ GENERANDO REPORTE...";
 
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
 
-            // --- CABEÇALHO ---
+            // 1. CABEÇALHO COM LOGO
             doc.setLineWidth(0.3);
             doc.rect(10, 10, 190, 25); 
             doc.line(50, 10, 50, 35);
             doc.line(150, 10, 150, 35);
             
-            if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 13, 35, 18);
+            // INSERIR LOGO SE ESTIVER DISPONÍVEL
+            if (logoDataUrl) {
+                doc.addImage(logoDataUrl, 'PNG', 15, 13, 30, 18);
+            }
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(10);
@@ -257,7 +242,7 @@
             doc.text("PÁGINA: 1 DE 1", 152, 28);
             doc.text("REVISIÓN: 00", 152, 34);
 
-            // 1. CONTEXTO
+            // 2. CONTEXTO
             doc.setFillColor(203, 213, 224); 
             doc.rect(10, 35, 190, 7, 'F');
             doc.rect(10, 35, 190, 7); 
@@ -277,7 +262,7 @@
             doc.setFont("helvetica", "normal"); doc.setFontSize(9);
             doc.text(document.getElementById('depto').value, 11, 63);
 
-            // 2. DESCRIPCIÓN
+            // 3. DESCRIPCIÓN
             doc.setFillColor(203, 213, 224);
             doc.rect(10, 66, 190, 7, 'F'); doc.rect(10, 66, 190, 7);
             doc.setFont("helvetica", "bold"); doc.setFontSize(8);
@@ -288,7 +273,7 @@
             const descLines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
             doc.text(descLines, 11, 79);
 
-            // 3. REGISTRO
+            // 4. REGISTRO
             doc.setFillColor(203, 213, 224);
             doc.rect(10, 108, 190, 7, 'F'); doc.rect(10, 108, 190, 7);
             doc.setFont("helvetica", "bold");
@@ -299,7 +284,7 @@
                 doc.addImage(preview.src, 'JPEG', 15, 120, 180, 95);
             }
 
-            // 4. IDENTIFICACIÓN
+            // 5. IDENTIFICAÇÃO
             doc.setFillColor(203, 213, 224);
             doc.rect(10, 220, 190, 7, 'F'); doc.rect(10, 220, 190, 7);
             doc.setFont("helvetica", "bold");
@@ -309,11 +294,12 @@
             doc.setFontSize(6);
             doc.text("NOMBRE Y APELLIDO:", 11, 230); doc.text("EMPRESA:", 106, 230);
             doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-            doc.text(relatorNome, 11, 238);
+            doc.text(document.getElementById('relator').value.toUpperCase(), 11, 238);
             doc.text(document.getElementById('empresa').value.toUpperCase(), 106, 238);
 
             const pdfBase64 = doc.output('datauristring').split(',')[1];
-            const fileName = `${relatorNome}_${Date.now()}.pdf`;
+            const relatorNome = document.getElementById('relator').value.toUpperCase();
+            const fileName = `${relatorNome}_REPORTE.pdf`;
             const payload = { name: fileName, bytes: pdfBase64 };
 
             if (navigator.onLine) {
@@ -323,13 +309,14 @@
             } else {
                 let q = JSON.parse(localStorage.getItem('hse_queue') || '[]');
                 q.push(payload); localStorage.setItem('hse_queue', JSON.stringify(q));
-                status.innerText = "☁️ OFFLINE: GUARDADO PARA SINCRONIZAR.";
+                status.innerText = "☁️ OFFLINE: GUARDADO.";
                 status.style.color = "blue";
             }
 
             doc.save(fileName);
-            form.reset(); preview.style.display = 'none'; preview.src = "";
+            form.reset(); preview.style.display = 'none';
         } catch (err) {
+            console.error(err);
             status.innerText = "❌ ERROR AL GENERAR PDF.";
         }
         btn.disabled = false;
