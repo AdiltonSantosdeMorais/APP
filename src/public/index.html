@@ -9,53 +9,32 @@
     <style>
         :root { --blue: #003366; --gray: #cbd5e0; --light-gray: #f0f2f5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: var(--light-gray); margin: 0; padding: 0; width: 100%; 
-        }
-
-        /* Correção de Responsividade iOS */
-        .app-container { 
-            background: white; width: 100%; max-width: 800px; margin: 0 auto; 
-            min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; 
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        input[type="time"], input[type="date"], select, input[type="text"], textarea {
-            font-size: 16px !important; /* Evita zoom automático no iOS */
-            padding: 10px; border-radius: 4px; border: 1px solid #ddd;
-            width: 100%; background: #fff; appearance: none; -webkit-appearance: none;
-        }
-
+        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; }
+        .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+        input[type="time"], input[type="date"], select, input[type="text"], textarea { font-size: 16px !important; padding: 10px; border-radius: 4px; border: 1px solid #ddd; width: 100%; background: #fff; appearance: none; -webkit-appearance: none; }
         .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; }
         .logo-img { width: 60px; height: auto; }
         .tech-info { text-align: left !important; font-size: 7px !important; line-height: 1.2; }
-
         .section-header { background: var(--gray); border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
         .cell { border-right: 1px solid #000; padding: 10px; display: flex; flex-direction: column; flex: 1; min-width: 50%; }
-        
         label { font-size: 9px; font-weight: bold; margin-bottom: 4px; color: var(--blue); }
-
-        /* Estilos de Desenho/Foto */
         .media-actions { display: flex; gap: 10px; padding: 10px; background: #fff; }
         .btn-media { flex: 1; padding: 12px; border: 1px solid var(--blue); background: #f8f9fa; border-radius: 5px; font-weight: bold; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        
         #drawing-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; flex-direction: column; }
         #canvas-paint { background: #fff; touch-action: none; flex-grow: 1; width: 100%; }
         .paint-controls { background: var(--blue); padding: 15px; display: flex; justify-content: space-around; }
-
         #preview { width: 100%; max-height: 350px; object-fit: contain; display: none; margin: 10px 0; border: 1px solid #000; background: #eee; }
-
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
         #statusMsg { font-size: 12px; text-align: center; padding: 15px; font-weight: bold; }
-
+        #syncBanner { background: #44bb44; color: white; text-align: center; font-size: 10px; padding: 5px; display: none; }
         @media (max-width: 480px) { .cell { min-width: 100%; border-right: none; } }
     </style>
 </head>
 <body>
+
+<div id="syncBanner">🔄 Sincronizando reportes pendientes...</div>
 
 <div class="app-container">
     <form id="hSEForm">
@@ -128,20 +107,45 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = 'SUA_URL_AQUI';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
-    // 1. SINCRONIZAÇÃO RÁPIDA (SERVICE WORKER ATUALIZADO)
+    // 1. SINCRONIZAÇÃO TOTALMENTE AUTOMÁTICA
+    async function syncQueue() {
+        if (!navigator.onLine) return;
+        let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
+        if (queue.length === 0) return;
+
+        document.getElementById('syncBanner').style.display = 'block';
+
+        for (let i = 0; i < queue.length; i++) {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(queue[i]) 
+                });
+                // Se chegou aqui, remove da fila
+                queue.splice(i, 1);
+                i--; // Ajusta o índice após remoção
+                localStorage.setItem('hse_queue', JSON.stringify(queue));
+            } catch (e) {
+                console.log("Falha ao sincronizar item, tentando mais tarde...");
+            }
+        }
+        
+        if(queue.length === 0) {
+            setTimeout(() => {
+                document.getElementById('syncBanner').style.display = 'none';
+            }, 2000);
+        }
+    }
+
+    // Monitora volta da internet e roda a cada 30 segundos
+    window.addEventListener('online', syncQueue);
+    setInterval(syncQueue, 30000); 
+
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(reg => {
-            reg.onupdatefound = () => {
-                const installingWorker = reg.installing;
-                installingWorker.onstatechange = () => {
-                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        window.location.reload(); // Atualiza o app imediatamente se houver mudança
-                    }
-                };
-            };
-        });
+        navigator.serviceWorker.register('sw.js');
     }
 
     const fotoInput = document.getElementById('foto');
@@ -150,7 +154,6 @@
     const ctx = canvas.getContext('2d');
     let painting = false;
 
-    // --- ANEXO IMEDIATO DA FOTO ---
     fotoInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -163,7 +166,6 @@
         }
     });
 
-    // --- LÓGICA DE DESENHO EM BRANCO ---
     function abrirDibujoBlanco() {
         document.getElementById('drawing-container').style.display = 'flex';
         canvas.width = window.innerWidth;
@@ -182,14 +184,13 @@
         cerrarDibujo();
     }
 
-    // Eventos de Desenho (iOS/Android)
     function startDraw(e) { painting = true; draw(e); }
     function endDraw() { painting = false; ctx.beginPath(); }
     function draw(e) {
         if (!painting) return;
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX || e.touches[0].clientX) - rect.left;
-        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
         ctx.lineTo(x, y);
         ctx.stroke();
         ctx.beginPath();
@@ -203,7 +204,6 @@
     window.addEventListener('mouseup', endDraw);
     window.addEventListener('touchend', endDraw);
 
-    // --- ENVIO E FILA ---
     document.getElementById('hSEForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -212,23 +212,30 @@
         
         btn.disabled = true;
         status.style.display = "block";
-        status.innerText = "⏳ PROCESANDO...";
+        status.innerText = "⏳ PROCESANDO REPORTE...";
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
         
-        // (Aqui entra o seu código de desenho do PDF que já funciona perfeitamente)
-        // ... doc.rect, doc.text, etc ...
-        if(preview.src) doc.addImage(preview.src, 'JPEG', 15, 120, 180, 95);
+        // --- DESENHO DO PDF (RESUMIDO PARA EXEMPLO) ---
+        doc.setLineWidth(0.5);
+        doc.rect(10, 10, 190, 25);
+        doc.setFont("helvetica", "bold");
+        doc.text("FORMULARIO NEARMISS", 100, 22, { align: "center" });
+        
+        if(preview.src && preview.src.includes("base64")) {
+            doc.addImage(preview.src, 'JPEG', 15, 120, 180, 95);
+        }
 
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         const fileName = `${relatorNome}_${Date.now()}.pdf`;
         const payload = { name: fileName, bytes: pdfBase64 };
 
+        // Tenta enviar ou salva na fila
         if (navigator.onLine) {
             try {
                 await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                status.innerText = "✅ ENVIADO!";
+                status.innerText = "✅ ENVIADO EXITOSAMENTE!";
                 status.style.color = "green";
             } catch (err) {
                 saveToQueue(payload);
@@ -237,12 +244,14 @@
         } else {
             saveToQueue(payload);
             status.innerText = "☁️ OFFLINE: GUARDADO";
+            status.style.color = "blue";
         }
 
         doc.save(fileName);
         this.reset();
         preview.style.display = 'none';
         btn.disabled = false;
+        setTimeout(() => { status.style.display = 'none'; }, 4000);
     });
 
     function saveToQueue(data) {
