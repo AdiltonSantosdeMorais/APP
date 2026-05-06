@@ -121,7 +121,6 @@
     
     let logoDataUrl = "";
 
-    // 1. Pré-carregamento da Logo para o PDF
     function prepararLogo() {
         const img = document.getElementById('logoImg');
         const canvasLogo = document.createElement('canvas');
@@ -144,7 +143,6 @@
 
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(e => console.log(e)); }
 
-    // 2. Sincronização Automática
     async function syncQueue() {
         if (!navigator.onLine) return;
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
@@ -208,27 +206,30 @@
     window.addEventListener('mouseup', endDraw);
     window.addEventListener('touchend', endDraw);
 
-    // 3. Geração de PDF IDÊNTICO
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const status = document.getElementById('statusMsg');
+        const relatorNome = document.getElementById('relator').value.toUpperCase();
         
         btn.disabled = true;
         status.style.display = "block"; status.style.color = "orange";
-        status.innerText = "⏳ PROCESANDO REPORTE...";
+        status.innerText = "⏳ GENERANDO REPORTE IDENTICO...";
 
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             
-            // --- CABEÇALHO ---
+            // --- DESENHO RIGIDO DA TABELA (COORDENADAS EM MM) ---
             doc.setLineWidth(0.5);
+            doc.setDrawColor(0);
+
+            // 1. CABEÇALHO
             doc.rect(10, 10, 190, 25); 
             doc.line(50, 10, 50, 35);
             doc.line(150, 10, 150, 35);
             
-            if (logoDataUrl) doc.addImage(logoDataUrl, 'PNG', 15, 13, 30, 18);
+            if (logoDataUrl) doc.addImage(logoDataUrl, 'PNG', 15, 13, 28, 18);
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(10);
@@ -260,7 +261,7 @@
             doc.rect(10, y, 190, 12);
             doc.setFont("helvetica", "bold"); doc.setFontSize(6);
             doc.text("DEPARTAMENTO:", 11, y + 4);
-            doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(9);
             doc.text(document.getElementById('depto').value, 11, y + 10);
 
             // 2. DESCRIPCIÓN
@@ -274,7 +275,7 @@
             doc.rect(10, y, 190, 35);
             doc.setFont("helvetica", "normal"); doc.setFontSize(9);
             const descLines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
-            doc.text(descLines, 11, y + 6);
+            doc.text(descLines, 11, y + 7);
 
             // 3. REGISTRO
             y += 35;
@@ -286,7 +287,8 @@
             y += 7;
             doc.rect(10, y, 190, 100);
             if(preview.src && preview.src.startsWith('data:image')) {
-                doc.addImage(preview.src, 'JPEG', 12, y + 2, 186, 96);
+                // Desenhar a imagem centralizada no quadro sem distorção forçada
+                doc.addImage(preview.src, 'JPEG', 12, y + 2, 186, 96, undefined, 'FAST');
             }
 
             // 4. IDENTIFICACIÓN
@@ -301,29 +303,29 @@
             doc.setFontSize(6);
             doc.text("NOMBRE Y APELLIDO:", 11, y + 4); doc.text("EMPRESA:", 106, y + 4);
             doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-            doc.text(document.getElementById('relator').value.toUpperCase(), 11, y + 11);
+            doc.text(relatorNome, 11, y + 11);
             doc.text(document.getElementById('empresa').value.toUpperCase(), 106, y + 11);
 
-            // ENVIO
+            // --- PROCESSO DE ENVIO ---
             const pdfBase64 = doc.output('datauristring').split(',')[1];
-            const relatorNome = document.getElementById('relator').value.toUpperCase();
             const fileName = `${relatorNome}_REPORTE.pdf`;
             const payload = { name: fileName, bytes: pdfBase64 };
 
             if (navigator.onLine) {
                 await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                status.innerText = "✅ ENVIADO EXITOSAMENTE!";
+                status.innerText = "✅ ¡ENVIADO EXITOSAMENTE!";
                 status.style.color = "green";
             } else {
                 let q = JSON.parse(localStorage.getItem('hse_queue') || '[]');
                 q.push(payload); localStorage.setItem('hse_queue', JSON.stringify(q));
-                status.innerText = "☁️ OFFLINE: GUARDADO.";
+                status.innerText = "☁️ OFFLINE: REPORTE GUARDADO.";
                 status.style.color = "blue";
             }
 
             doc.save(fileName);
-            form.reset(); preview.style.display = 'none';
+            form.reset(); preview.style.display = 'none'; preview.src = "";
         } catch (err) {
+            console.error(err);
             status.innerText = "❌ ERROR AL GENERAR PDF.";
         }
         btn.disabled = false;
