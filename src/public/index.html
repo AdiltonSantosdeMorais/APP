@@ -11,7 +11,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
         
-        /* Ajuste Responsivo Android/iOS */
         input[type="time"], input[type="date"] {
             appearance: none;
             -webkit-appearance: none;
@@ -40,7 +39,6 @@
         .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; width: 100%; padding: 5px 0; }
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
 
-        /* Estilos do Canvas de Desenho */
         #drawing-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; }
         #canvas-paint { background: white; touch-action: none; cursor: crosshair; flex-grow: 1; width: 100%; }
         .paint-controls { background: #333; padding: 15px; display: flex; justify-content: space-around; gap: 10px; }
@@ -259,86 +257,60 @@
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
-        const corAzulEscuro = [0, 51, 102];
-        const corCinzaFundo = [203, 213, 224];
+        const corDeFundo = [203, 213, 224];
+        const corDoRotulo = [0, 51, 102];
 
-        // --- CABEÇALHO IDÊNTICO ---
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.3);
-        doc.rect(10, 10, 190, 20); 
-        doc.line(50, 10, 50, 30);  
-        doc.line(150, 10, 150, 30); 
-
+        // --- CABEÇALHO ---
+        doc.setLineWidth(0.5);
+        doc.rect(10, 10, 190, 25); 
+        doc.line(50, 10, 50, 35); doc.line(150, 10, 150, 35);
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
-        if (logoBase64) doc.addImage(logoBase64, 'PNG', 15, 12, 30, 15);
+        if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
+        doc.setFontSize(11); doc.setFont("helvetica", "bold");
+        doc.text("FORMULARIO NEARMISS", 100, 20, { align: 'center' });
+        doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
+        doc.setFontSize(7); doc.text("CÓDIGO:", 152, 15); doc.text("FECHA:", 152, 19); doc.text("PÁGINA: 1 DE 1", 152, 23); doc.text("REVISIÓN: 00", 152, 27); doc.text("CATEGORÍA: GENERAL", 152, 31); doc.text("SECTOR: SEGURIDAD", 152, 34);
 
-        doc.setFontSize(10); doc.setFont("helvetica", "bold");
-        doc.text("FORMULARIO NEARMISS", 100, 18, { align: 'center' });
-        doc.text("PROYECTO COPIAPÓ SOLAR", 100, 24, { align: 'center' });
-
-        doc.setFontSize(6);
-        doc.text("CÓDIGO:\nFECHA:\nPÁGINA: 1 DE 1\nREVISIÓN: 00\nCATEGORÍA: GENERAL\nSECTOR: SEGURIDAD", 152, 14);
-
-        // --- SEÇÃO 1: CONTEXTO ---
-        doc.setFillColor(...corCinzaFundo);
-        doc.rect(10, 30, 190, 7, 'F'); doc.rect(10, 30, 190, 7); 
+        // --- SECCIÓN 1: CONTEXTO ---
+        doc.setFillColor(...corDeFundo); doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
+        
+        doc.rect(10, 43, 95, 12); doc.rect(105, 43, 95, 12); // Fecha e Hora
+        doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("FECHA:", 12, 46); doc.text("HORA:", 107, 46);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text(document.getElementById('fecha').value, 12, 52); doc.text(document.getElementById('hora').value, 107, 52);
+        
+        doc.rect(10, 55, 190, 12); // Departamento
+        doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("DEPARTAMENTO:", 12, 59);
+        doc.setFontSize(9); doc.setTextColor(0); doc.text(document.getElementById('depto').value, 12, 64);
+        
+        doc.rect(10, 67, 190, 12); // Área Específica
+        doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("ÁREA ESPECÍFICA:", 12, 71);
         doc.setFontSize(9); doc.setTextColor(0);
-        doc.text("1. CONTEXTO", 12, 35);
+        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
+        doc.text(areas, 12, 76);
 
-        doc.rect(10, 37, 95, 15); doc.rect(105, 37, 95, 15); 
-        doc.setFontSize(7); doc.setTextColor(...corAzulEscuro);
-        doc.text("FECHA:", 12, 41); doc.text("HORA:", 107, 41);
-        doc.setFontSize(10); doc.setTextColor(0);
-        doc.text(document.getElementById('fecha').value, 12, 48);
-        doc.text(document.getElementById('hora').value, 107, 48);
+        // --- SECCIÓN 2: DESCRIPCIÓN ---
+        doc.setFillColor(...corDeFundo); doc.rect(10, 79, 190, 8, 'F'); doc.rect(10, 79, 190, 8);
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 85);
+        doc.rect(10, 87, 190, 35); doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
+        doc.text(lines, 12, 94);
 
-        doc.rect(10, 52, 190, 15);
-        doc.setFontSize(7); doc.setTextColor(...corAzulEscuro);
-        doc.text("DEPARTAMENTO:", 12, 56);
-        doc.setFontSize(10); doc.setTextColor(0);
-        doc.text(document.getElementById('depto').value, 12, 63);
-
-        doc.rect(10, 67, 190, 15);
-        doc.setFontSize(7); doc.setTextColor(...corAzulEscuro);
-        doc.text("ÁREA ESPECÍFICA:", 12, 71);
-        doc.setFontSize(9); doc.setTextColor(0);
-        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join('   [X] ');
-        doc.text(areas ? '[X] ' + areas : '', 12, 78);
-
-        // --- SEÇÃO 2: DESCRIÇÃO ---
-        doc.setFillColor(...corCinzaFundo);
-        doc.rect(10, 82, 190, 7, 'F'); doc.rect(10, 82, 190, 7);
-        doc.setFontSize(9); doc.setFont("helvetica", "bold");
-        doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 87);
-
-        doc.rect(10, 89, 190, 40);
-        doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        const descText = document.getElementById('desc').value.toUpperCase();
-        const splitDesc = doc.splitTextToSize(descText, 180);
-        doc.text(splitDesc, 12, 95);
-
-        // --- SEÇÃO 3: REGISTRO FOTOGRÁFICO ---
-        doc.setFillColor(...corCinzaFundo);
-        doc.rect(10, 129, 190, 7, 'F'); doc.rect(10, 129, 190, 7);
-        doc.setFontSize(9); doc.setFont("helvetica", "bold");
-        doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 134);
-
-        doc.rect(10, 136, 190, 100);
+        // --- SECCIÓN 3: REGISTRO FOTOGRÁFICO ---
+        doc.setFillColor(...corDeFundo); doc.rect(10, 122, 190, 8, 'F'); doc.rect(10, 122, 190, 8);
+        doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 128);
+        doc.rect(10, 130, 190, 95);
         if (preview.src && preview.style.display !== 'none') {
-            doc.addImage(preview.src, 'JPEG', 15, 140, 180, 90);
+            doc.addImage(preview.src, 'JPEG', 15, 134, 180, 87);
         }
 
-        // --- SEÇÃO 4: IDENTIFICAÇÃO ---
-        doc.setFillColor(...corCinzaFundo);
-        doc.rect(10, 236, 190, 7, 'F'); doc.rect(10, 236, 190, 7);
-        doc.setFontSize(9); doc.text("4. IDENTIFICACIÓN", 12, 241);
-
-        doc.rect(10, 243, 95, 15); doc.rect(105, 243, 95, 15); 
-        doc.setFontSize(7); doc.setTextColor(...corAzulEscuro);
-        doc.text("NOMBRE Y APELLIDO:", 12, 247); doc.text("EMPRESA:", 107, 247);
-        doc.setFontSize(10); doc.setTextColor(0);
-        doc.text(relatorNome, 12, 254);
-        doc.text(document.getElementById('empresa').value.toUpperCase(), 107, 254);
+        // --- SECCIÓN 4: IDENTIFICACIÓN ---
+        doc.setFillColor(...corDeFundo); doc.rect(10, 225, 190, 8, 'F'); doc.rect(10, 225, 190, 8);
+        doc.text("4. IDENTIFICACIÓN", 12, 231);
+        doc.rect(10, 233, 95, 15); doc.rect(105, 233, 95, 15); // Nome e Empresa
+        doc.setFontSize(8); doc.setTextColor(...corDoRotulo); doc.text("NOMBRE Y APELLIDO:", 12, 237); doc.text("EMPRESA:", 107, 237);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text(relatorNome, 12, 244);
+        doc.text(document.getElementById('empresa').value.toUpperCase(), 107, 244);
 
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         const fileName = `${relatorNome}_${document.getElementById('fecha').value}.pdf`;
@@ -351,11 +323,13 @@
                 status.style.color = "green";
             } catch (err) {
                 saveToQueue(payload);
-                status.innerText = "⚠️ GUARDADO PARA SINCRONIZAR.";
+                status.innerText = "⚠️ ERROR DE RED. GUARDADO PARA SYNC.";
+                status.style.color = "orange";
             }
         } else {
             saveToQueue(payload);
-            status.innerText = "☁️ MODO OFFLINE ACTIVADO.";
+            status.innerText = "☁️ MODO OFFLINE: GUARDADO.";
+            status.style.color = "blue";
         }
 
         doc.save(fileName);
