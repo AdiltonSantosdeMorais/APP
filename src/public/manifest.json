@@ -1,15 +1,8 @@
 {
-  "name": "HSE ELECNOR",
+  "name": "HSE Elecnor",
   "short_name": "HSE",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#003366",
-  "icons": [
-    {
-      "src": "logo-elecnor.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    }
-  ]
+  "background_color": "#ffffff",
+  "theme_color": "#003366"
 }
