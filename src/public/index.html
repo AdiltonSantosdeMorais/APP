@@ -39,13 +39,18 @@
         .area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; width: 100%; padding: 5px 0; }
         .check-item { display: flex; align-items: center; font-size: 10px; font-weight: bold; }
 
+        /* Estilos do Editor de Desenho */
         #drawing-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; }
         #canvas-paint { background: white; touch-action: none; cursor: crosshair; flex-grow: 1; width: 100%; }
         .paint-controls { background: #333; padding: 15px; display: flex; justify-content: space-around; gap: 10px; }
         .paint-btn { padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        .photo-upload { padding: 20px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; }
-        #preview { width: 100%; max-height: 300px; object-fit: contain; display: none; margin-top: 10px; border: 1px solid #000; }
+        /* Nova Área de Botões Separados */
+        .photo-section-actions { padding: 15px; display: flex; gap: 10px; justify-content: center; border-bottom: 1px solid #000; }
+        .action-btn { background: white; border: 2px solid var(--blue); color: var(--blue); padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .action-btn:active { background: var(--light-gray); }
+
+        #preview { width: 100%; max-height: 350px; object-fit: contain; display: none; margin: 10px auto; border: 1px solid #000; padding: 5px; }
 
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: auto; }
         #statusMsg { font-size: 12px; text-align: center; padding: 15px; display: none; font-weight: bold; }
@@ -112,11 +117,12 @@
         <div class="row"><div class="cell"><textarea id="desc" rows="4" placeholder="DESCRIBA LO SUCEDIDO..." required></textarea></div></div>
 
         <div class="section-header">3. REGISTRO FOTOGRÁFICO / DIBUJO</div>
-        <div class="photo-upload" id="upload-trigger">
-            <label style="cursor:pointer">📸 ANEXAR UNA FOTO O DIBUJAR</label>
+        <div class="photo-section-actions">
+            <button type="button" class="action-btn" id="btn-attach-photo">📸 ADJUNTAR FOTO</button>
+            <button type="button" class="action-btn" id="btn-start-drawing">🎨 REALIZAR DIBUJO</button>
             <input type="file" id="foto" accept="image/*" style="display:none;">
-            <img id="preview">
         </div>
+        <img id="preview">
 
         <div class="section-header">4. IDENTIFICACIÓN</div>
         <div class="row">
@@ -133,6 +139,7 @@
     <canvas id="canvas-paint"></canvas>
     <div class="paint-controls">
         <button class="paint-btn" style="background:#ff4444; color:white" id="cancel-paint">CANCELAR</button>
+        <button class="paint-btn" style="background:#ff9900; color:white" id="clear-paint">LIMPIAR</button>
         <button class="paint-btn" style="background:#44bb44; color:white" id="save-paint">GUARDAR DIBUJO</button>
     </div>
 </div>
@@ -154,6 +161,7 @@
     const ctx = canvas.getContext('2d');
     let painting = false;
 
+    // --- LÓGICA DE FILA OFFLINE ---
     function saveToQueue(data) {
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         queue.push(data);
@@ -177,49 +185,74 @@
     window.addEventListener('online', syncQueue);
     window.addEventListener('load', syncQueue);
 
-    document.getElementById('upload-trigger').onclick = () => fotoInput.click();
+    // --- GESTÃO DA SEÇÃO 3: FOTO OU DESENHO ---
+
+    // Ação 1: Adjuntar Foto
+    document.getElementById('btn-attach-photo').onclick = () => {
+        // Limpa qualquer desenho anterior se houver
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        fotoInput.click();
+    };
 
     fotoInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                drawingContainer.style.display = 'flex';
-                const ratio = img.width / img.height;
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerWidth / ratio;
-                if(canvas.height > window.innerHeight * 0.8) {
-                    canvas.height = window.innerHeight * 0.8;
-                    canvas.width = canvas.height * ratio;
-                }
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = 4;
-                ctx.lineJoin = "round";
-                ctx.lineCap = "round";
-            };
-            img.src = event.target.result;
+            // Mostra a foto diretamente na pré-visualização, SEM abrir o editor
+            preview.src = event.target.result;
+            preview.style.display = 'block';
         };
         reader.readAsDataURL(file);
     });
 
+    // Ação 2: Realizar Desenho (Do zero, fundo branco)
+    document.getElementById('btn-start-drawing').onclick = () => {
+        // Limpa input de foto para garantir que estamos desenhando
+        fotoInput.value = ''; 
+        openDrawingEditor();
+    };
+
+    function openDrawingEditor() {
+        drawingContainer.style.display = 'flex';
+        
+        // Ajusta tamanho do canvas para tela cheia mobile
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight * 0.8; // Deixa espaço para controles
+
+        // Preenche com fundo branco sólido (Importante para o PDF mobile)
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Configurações do pincel
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 4;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+    }
+
+    // Funções de Pintura (Touch e Mouse unificados)
     function startPosition(e) { painting = true; draw(e); }
     function finishedPosition() { painting = false; ctx.beginPath(); }
     function draw(e) {
         if (!painting) return;
         const rect = canvas.getBoundingClientRect();
+        // Suporte para touch (mobile) e mouse (desktop)
         const clientX = e.clientX || (e.touches && e.touches[0].clientX);
         const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        
+        if (!clientX || !clientY) return;
+
         const x = clientX - rect.left;
         const y = clientY - rect.top;
+        
         ctx.lineTo(x, y);
         ctx.stroke();
         ctx.beginPath();
         ctx.moveTo(x, y);
     }
 
+    // Eventos do Canvas
     canvas.addEventListener('mousedown', startPosition);
     canvas.addEventListener('touchstart', startPosition);
     window.addEventListener('mouseup', finishedPosition);
@@ -227,13 +260,20 @@
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
 
-    document.getElementById('cancel-paint').onclick = () => { drawingContainer.style.display = 'none'; fotoInput.value = ""; };
+    // Controles do Editor
+    document.getElementById('cancel-paint').onclick = () => { drawingContainer.style.display = 'none'; };
+    document.getElementById('clear-paint').onclick = () => {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
     document.getElementById('save-paint').onclick = () => {
+        // Salva o desenho como imagem e mostra na pré-visualização
         preview.src = canvas.toDataURL('image/jpeg', 0.8);
         preview.style.display = 'block';
         drawingContainer.style.display = 'none';
     };
 
+    // --- GERAÇÃO DE PDF E ENVIO ---
     async function getLogoBase64(url) {
         try {
             const response = await fetch(url);
@@ -262,7 +302,7 @@
         const corDeFundo = [203, 213, 224];
         const corDoRotulo = [0, 51, 102];
 
-        // --- CABEÇALHO ---
+        // --- PDF LAYOUT IDÊNTICO AO ORIGINAL ---
         doc.setLineWidth(0.5);
         doc.rect(10, 10, 190, 25); 
         doc.line(50, 10, 50, 35); doc.line(150, 10, 150, 35);
@@ -274,25 +314,22 @@
         doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
         doc.setFontSize(7); doc.text("CÓDIGO:", 152, 15); doc.text("FECHA:", 152, 19); doc.text("PÁGINA: 1 DE 1", 152, 23); doc.text("REVISIÓN: 00", 152, 27); doc.text("CATEGORÍA: GENERAL", 152, 31); doc.text("SECTOR: SEGURIDAD", 152, 34);
 
-        // --- SECCIÓN 1: CONTEXTO ---
+        // Seção 1
         doc.setFillColor(...corDeFundo); doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
         doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
-        
         doc.rect(10, 43, 95, 12); doc.rect(105, 43, 95, 12);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("FECHA:", 12, 46); doc.text("HORA:", 107, 46);
         doc.setFontSize(10); doc.setTextColor(0); doc.text(document.getElementById('fecha').value, 12, 52); doc.text(document.getElementById('hora').value, 107, 52);
-        
         doc.rect(10, 55, 190, 12);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("DEPARTAMENTO:", 12, 59);
         doc.setFontSize(9); doc.setTextColor(0); doc.text(document.getElementById('depto').value, 12, 64);
-        
         doc.rect(10, 67, 190, 12);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("ÁREA ESPECÍFICA:", 12, 71);
         doc.setFontSize(9); doc.setTextColor(0);
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
         doc.text(areas, 12, 76);
 
-        // --- SECCIÓN 2: DESCRIPCIÓN ---
+        // Seção 2
         doc.setFillColor(...corDeFundo); doc.rect(10, 79, 190, 8, 'F'); doc.rect(10, 79, 190, 8);
         doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(0);
         doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 85);
@@ -300,16 +337,16 @@
         const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
         doc.text(lines, 12, 94);
 
-        // --- SECCIÓN 3: REGISTRO FOTOGRÁFICO ---
+        // Seção 3 (Capta a foto anexada OU o desenho salvo)
         doc.setFillColor(...corDeFundo); doc.rect(10, 122, 190, 8, 'F'); doc.rect(10, 122, 190, 8);
         doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 128);
         doc.rect(10, 130, 190, 95);
         if (preview.src && preview.style.display !== 'none') {
-            // AJUSTE FIXO PARA MOBILE: Centraliza a imagem no quadro
+            // Ajuste fixo mobile para garantir centralização
             doc.addImage(preview.src, 'JPEG', 15, 135, 180, 85, undefined, 'FAST');
         }
 
-        // --- SECCIÓN 4: IDENTIFICACIÓN ---
+        // Seção 4
         doc.setFillColor(...corDeFundo); doc.rect(10, 225, 190, 8, 'F'); doc.rect(10, 225, 190, 8);
         doc.text("4. IDENTIFICACIÓN", 12, 231);
         doc.rect(10, 233, 95, 15); doc.rect(105, 233, 95, 15);
@@ -321,6 +358,7 @@
         const fileName = `${relatorNome}_${document.getElementById('fecha').value}.pdf`;
         const payload = { name: fileName, bytes: pdfBase64 };
 
+        // LÓGICA DE ENVIO ORIGINAL INTACTA
         if (navigator.onLine) {
             try {
                 await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
