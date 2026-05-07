@@ -210,8 +210,10 @@
     function draw(e) {
         if (!painting) return;
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX || e.touches[0].clientX) - rect.left;
-        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
         ctx.lineTo(x, y);
         ctx.stroke();
         ctx.beginPath();
@@ -227,7 +229,7 @@
 
     document.getElementById('cancel-paint').onclick = () => { drawingContainer.style.display = 'none'; fotoInput.value = ""; };
     document.getElementById('save-paint').onclick = () => {
-        preview.src = canvas.toDataURL('image/jpeg', 0.7);
+        preview.src = canvas.toDataURL('image/jpeg', 0.8);
         preview.style.display = 'block';
         drawingContainer.style.display = 'none';
     };
@@ -267,6 +269,7 @@
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
         doc.setFontSize(11); doc.setFont("helvetica", "bold");
+        doc.setTextColor(0);
         doc.text("FORMULARIO NEARMISS", 100, 20, { align: 'center' });
         doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
         doc.setFontSize(7); doc.text("CÓDIGO:", 152, 15); doc.text("FECHA:", 152, 19); doc.text("PÁGINA: 1 DE 1", 152, 23); doc.text("REVISIÓN: 00", 152, 27); doc.text("CATEGORÍA: GENERAL", 152, 31); doc.text("SECTOR: SEGURIDAD", 152, 34);
@@ -275,15 +278,15 @@
         doc.setFillColor(...corDeFundo); doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
         doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
         
-        doc.rect(10, 43, 95, 12); doc.rect(105, 43, 95, 12); // Fecha e Hora
+        doc.rect(10, 43, 95, 12); doc.rect(105, 43, 95, 12);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("FECHA:", 12, 46); doc.text("HORA:", 107, 46);
         doc.setFontSize(10); doc.setTextColor(0); doc.text(document.getElementById('fecha').value, 12, 52); doc.text(document.getElementById('hora').value, 107, 52);
         
-        doc.rect(10, 55, 190, 12); // Departamento
+        doc.rect(10, 55, 190, 12);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("DEPARTAMENTO:", 12, 59);
         doc.setFontSize(9); doc.setTextColor(0); doc.text(document.getElementById('depto').value, 12, 64);
         
-        doc.rect(10, 67, 190, 12); // Área Específica
+        doc.rect(10, 67, 190, 12);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("ÁREA ESPECÍFICA:", 12, 71);
         doc.setFontSize(9); doc.setTextColor(0);
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
@@ -291,23 +294,25 @@
 
         // --- SECCIÓN 2: DESCRIPCIÓN ---
         doc.setFillColor(...corDeFundo); doc.rect(10, 79, 190, 8, 'F'); doc.rect(10, 79, 190, 8);
-        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 85);
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(0);
+        doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 85);
         doc.rect(10, 87, 190, 35); doc.setFontSize(10); doc.setFont("helvetica", "normal");
         const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
         doc.text(lines, 12, 94);
 
         // --- SECCIÓN 3: REGISTRO FOTOGRÁFICO ---
         doc.setFillColor(...corDeFundo); doc.rect(10, 122, 190, 8, 'F'); doc.rect(10, 122, 190, 8);
-        doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 128);
+        doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 128);
         doc.rect(10, 130, 190, 95);
         if (preview.src && preview.style.display !== 'none') {
-            doc.addImage(preview.src, 'JPEG', 15, 134, 180, 87);
+            // AJUSTE FIXO PARA MOBILE: Centraliza a imagem no quadro
+            doc.addImage(preview.src, 'JPEG', 15, 135, 180, 85, undefined, 'FAST');
         }
 
         // --- SECCIÓN 4: IDENTIFICACIÓN ---
         doc.setFillColor(...corDeFundo); doc.rect(10, 225, 190, 8, 'F'); doc.rect(10, 225, 190, 8);
         doc.text("4. IDENTIFICACIÓN", 12, 231);
-        doc.rect(10, 233, 95, 15); doc.rect(105, 233, 95, 15); // Nome e Empresa
+        doc.rect(10, 233, 95, 15); doc.rect(105, 233, 95, 15);
         doc.setFontSize(8); doc.setTextColor(...corDoRotulo); doc.text("NOMBRE Y APELLIDO:", 12, 237); doc.text("EMPRESA:", 107, 237);
         doc.setFontSize(10); doc.setTextColor(0); doc.text(relatorNome, 12, 244);
         doc.text(document.getElementById('empresa').value.toUpperCase(), 107, 244);
