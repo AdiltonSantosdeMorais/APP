@@ -1,4 +1,5 @@
 {
+  "id": "com.safetylog.elecnor",
   "name": "SafetyLog HSE Elecnor",
   "short_name": "SafetyLog",
   "description": "Aplicativo para reporte de nearmiss e segurança no projeto Copiapó Solar.",
@@ -10,25 +11,24 @@
   "icons": [
     {
       "src": "icon-512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "icon-512.png",
-      "sizes": "192x192",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
   "screenshots": [
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "SafetyLog Home"
-    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
