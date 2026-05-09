@@ -69,7 +69,7 @@
         <table class="header-table">
             <tr>
                 <td style="width: 20%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
-                <td style="width: 50%;">SafetyLog<br>PROYECTO COPIAPÓ SOLAR</td>
+                <td style="width: 50%;">FORMULARIO NEARMISS<br>PROYECTO COPIAPÓ SOLAR</td>
                 <td style="width: 30%;" class="tech-info">
                     CÓDIGO: <br> FECHA: <br> PÁGINA: 1 DE 1 <br> REVISIÓN: 00 <br> CATEGORÍA: GENERAL <br> SECTOR: SEGURIDAD
                 </td>
@@ -285,7 +285,7 @@
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
         if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
         doc.setFontSize(11); doc.setFont("helvetica", "bold");
-        doc.text("SafetyLog - FORMULARIO NEARMISS", 100, 20, { align: 'center' });
+        doc.text("FORMULARIO NEARMISS", 100, 20, { align: 'center' });
         doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
         doc.setFontSize(7); doc.text("CÓDIGO:", 152, 15); doc.text("FECHA:", 152, 19); doc.text("PÁGINA: 1 DE 1", 152, 23); doc.text("REVISIÓN: 00", 152, 27); doc.text("CATEGORÍA: GENERAL", 152, 31); doc.text("SECTOR: SEGURIDAD", 152, 34);
 
@@ -323,7 +323,8 @@
         doc.text(document.getElementById('empresa').value.toUpperCase(), 107, 244);
 
         const pdfBase64 = doc.output('datauristring').split(',')[1];
-        const fileName = `SafetyLog_${relatorNome}_${document.getElementById('fecha').value}.pdf`;
+        // NOME DO ARQUIVO AGORA É O NOME DO RELATOR
+        const fileName = `${relatorNome}_REPORTE.pdf`;
         const payload = { name: fileName, bytes: pdfBase64 };
 
         if (navigator.onLine) {
