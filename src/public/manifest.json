@@ -1,6 +1,7 @@
 {
-  "name": "HSE ELECNOR - COPIAPÓ SOLAR",
-  "short_name": "HSE Elecnor",
+  "name": "SafetyLog - HSE Elecnor",
+  "short_name": "SafetyLog",
+  "description": "Formulario de Seguridad Nearmiss",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#003366",
