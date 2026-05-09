@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>HSE ELECNOR - PROYECTO COPIAPÓ SOLAR</title>
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="HSE Elecnor">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1160/1160358.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
@@ -149,14 +151,13 @@
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
-    // Registro do Service Worker para modo offline
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').catch(e => console.log(e));
         });
     }
 
-    // Lógica de Fila Offline
+    // --- LÓGICA DE FILA OFFLINE ---
     function saveToQueue(data) {
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         queue.push(data);
@@ -170,11 +171,7 @@
 
         for (let i = 0; i < queue.length; i++) {
             try {
-                await fetch(GOOGLE_SCRIPT_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(queue[i]) 
-                });
+                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(queue[i]) });
                 queue.splice(i, 1);
                 i--;
             } catch (e) { break; }
@@ -193,7 +190,7 @@
     const ctx = canvas.getContext('2d');
     let painting = false;
 
-    // Gestão de Foto/Desenho Separados
+    // Foto ou Desenho
     document.getElementById('btn-attach-photo').onclick = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
         fotoInput.click();
@@ -223,7 +220,6 @@
         ctx.lineCap = "round";
     };
 
-    // Funções de Desenho
     function startPosition(e) { painting = true; draw(e); }
     function finishedPosition() { painting = false; ctx.beginPath(); }
     function draw(e) {
@@ -269,7 +265,6 @@
         } catch (e) { return null; }
     }
 
-    // Envio e Geração de PDF
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -286,7 +281,7 @@
         const corDeFundo = [203, 213, 224];
         const corDoRotulo = [0, 51, 102];
 
-        // Cabeçalho
+        // --- Geração do PDF ---
         doc.setLineWidth(0.5);
         doc.rect(10, 10, 190, 25); 
         doc.line(50, 10, 50, 35); doc.line(150, 10, 150, 35);
@@ -297,7 +292,6 @@
         doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
         doc.setFontSize(7); doc.text("CÓDIGO:", 152, 15); doc.text("FECHA:", 152, 19); doc.text("PÁGINA: 1 DE 1", 152, 23); doc.text("REVISIÓN: 00", 152, 27); doc.text("CATEGORÍA: GENERAL", 152, 31); doc.text("SECTOR: SEGURIDAD", 152, 34);
 
-        // Seção 1
         doc.setFillColor(...corDeFundo); doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
         doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
         doc.rect(10, 43, 95, 12); doc.rect(105, 43, 95, 12);
@@ -311,14 +305,12 @@
         const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
         doc.setFontSize(9); doc.setTextColor(0); doc.text(areas, 12, 76);
 
-        // Seção 2
         doc.setFillColor(...corDeFundo); doc.rect(10, 79, 190, 8, 'F'); doc.rect(10, 79, 190, 8);
         doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 85);
         doc.rect(10, 87, 190, 35); doc.setFontSize(10); doc.setFont("helvetica", "normal");
         const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
         doc.text(lines, 12, 94);
 
-        // Seção 3
         doc.setFillColor(...corDeFundo); doc.rect(10, 122, 190, 8, 'F'); doc.rect(10, 122, 190, 8);
         doc.text("3. REGISTRO FOTOGRÁFICO / DIBUJO", 12, 128);
         doc.rect(10, 130, 190, 95);
@@ -326,7 +318,6 @@
             doc.addImage(preview.src, 'JPEG', 15, 135, 180, 85, undefined, 'FAST');
         }
 
-        // Seção 4
         doc.setFillColor(...corDeFundo); doc.rect(10, 225, 190, 8, 'F'); doc.rect(10, 225, 190, 8);
         doc.text("4. IDENTIFICACIÓN", 12, 231);
         doc.rect(10, 233, 95, 15); doc.rect(105, 233, 95, 15);
@@ -345,12 +336,12 @@
                 status.style.color = "green";
             } catch (err) {
                 saveToQueue(payload);
-                status.innerText = "⚠️ GUARDADO PARA SINCRONIZAR.";
+                status.innerText = "⚠️ ERROR DE RED. GUARDADO PARA SYNC.";
                 status.style.color = "orange";
             }
         } else {
             saveToQueue(payload);
-            status.innerText = "☁️ GUARDADO (MODO OFFLINE).";
+            status.innerText = "☁️ MODO OFFLINE: GUARDADO.";
             status.style.color = "blue";
         }
 
