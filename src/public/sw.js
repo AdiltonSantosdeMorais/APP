@@ -1,4 +1,4 @@
-const CACHE_NAME = 'safetylog-v1';
+const CACHE_NAME = 'safereport-v1';
 const ASSETS = [
   './',
   './index.html',
