@@ -1,4 +1,4 @@
-const CACHE_NAME = 'safereport-v1';
+const CACHE_NAME = 'safereport-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,22 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
+});
+
+// EVENTO ADICIONADO: Limpa o cache antigo (v1) e força a atualização do Manifest no celular
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('Removendo cache antigo:', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
   );
 });
 
