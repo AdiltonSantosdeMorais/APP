@@ -102,12 +102,12 @@
         <div class="row">
             <div class="cell"><label>ÁREA ESPECÍFICA:</label>
                 <div class="area-grid">
-                    <label class="check-item"><input type="checkbox" name="area" value="IIFF"> IIFF</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="PV"> PV</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="BESS"> BESS</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="LAT"> LAT</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="SE C.P"> SE C.P</label>
-                    <label class="check-item"><input type="checkbox" name="area" value="SE ELE"> SE ELE</label>
+                    <label class="check-item"><input type="radio" name="area" value="IIFF" required> IIFF</label>
+                    <label class="check-item"><input type="radio" name="area" value="PV"> PV</label>
+                    <label class="check-item"><input type="radio" name="area" value="BESS"> BESS</label>
+                    <label class="check-item"><input type="radio" name="area" value="LAT"> LAT</label>
+                    <label class="check-item"><input type="radio" name="area" value="SE C.P"> SE C.P</label>
+                    <label class="check-item"><input type="radio" name="area" value="SE ELE"> SE ELE</label>
                 </div>
             </div>
         </div>
@@ -298,7 +298,10 @@
         doc.rect(10, 55, 190, 12); doc.line(80, 55, 80, 67);
         doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("DEPARTAMENTO:", 12, 59); doc.text("ÁREA ESPECÍFICA:", 82, 59);
         doc.setFontSize(9); doc.setTextColor(0); doc.text(document.getElementById('depto').value, 12, 64);
-        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
+        
+        // Ajustado para buscar o valor único do elemento radio marcado
+        const selectedAreaElement = document.querySelector('input[name="area"]:checked');
+        const areas = selectedAreaElement ? selectedAreaElement.value : '';
         doc.text(areas, 82, 64);
 
         // Seção 2
