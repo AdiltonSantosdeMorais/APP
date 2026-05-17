@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HSE ELECNOR - PROYECTO COPIAPÓ SOLAR</title>
+    <title>SafeReport</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -11,7 +11,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--light-gray); margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
         
-        /* Ajuste Responsivo Android/iOS */
+        /* Ajuste Responsivo Android/iOS - Alinhamento Corrigido para iPhone */
         input[type="time"], input[type="date"] {
             appearance: none;
             -webkit-appearance: none;
@@ -21,13 +21,15 @@
             padding: 8px !important;
             border-radius: 4px;
             width: 100%;
+            display: block;
+            line-height: normal;
         }
 
         .app-container { background: white; width: 100%; max-width: 800px; margin: 0 auto; min-height: 100vh; border: 1px solid #000; display: flex; flex-direction: column; }
         .header-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .header-table td { border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; font-size: 10px; overflow: hidden; }
         .logo-img { width: 60px; height: auto; }
-        .tech-info { text-align: left !important; font-size: 7px !important; line-height: 1.2; padding-left: 5px !important; }
+        .tech-info { text-align: left !important; font-size: 7px !important; line-height: 1.2; }
 
         .section-header { background: var(--gray); border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
         .row { display: flex; border-bottom: 1px solid #000; width: 100%; flex-wrap: wrap; }
@@ -47,7 +49,7 @@
         .paint-btn { padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
         .photo-upload { padding: 20px; border: 2px dashed var(--gray); margin: 10px; text-align: center; cursor: pointer; }
-        #preview { width: 100%; max-height: 300px; object-fit: contain; display: none; margin: 10px auto; border: 1px solid #000; }
+        #preview { width: 100%; max-height: 300px; object-fit: contain; display: none; margin-top: 10px; border: 1px solid #000; }
 
         .btn-submit { background: var(--blue); color: white; border: none; padding: 20px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: auto; }
         #statusMsg { font-size: 12px; text-align: center; padding: 15px; display: none; font-weight: bold; }
@@ -64,7 +66,7 @@
                 <td style="width: 20%;"><img id="logoImg" src="logo-elecnor.png" class="logo-img"></td>
                 <td style="width: 50%;">FORMULARIO NEARMISS<br>PROYECTO COPIAPÓ SOLAR</td>
                 <td style="width: 30%;" class="tech-info">
-                    CÓDIGO: FT-PC-HSE-43<br> FECHA: 05/05/2026<br> PÁGINA: 1 DE 1 <br> REVISIÓN: 00 <br> CATEGORÍA: GENERAL <br> SECTOR: SEGURIDAD
+                    CÓDIGO: <br> FECHA: <br> PÁGINA: 1 DE 1 <br> REVISIÓN: 00 <br> CATEGORÍA: GENERAL <br> SECTOR: SEGURIDAD
                 </td>
             </tr>
         </table>
@@ -145,6 +147,7 @@
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpvovV6jGu_7lazLY3HfvCaBxVPOUjtLKHNjmBuKEGyM5QIxrEIgeo9kq5DPZRyEePJg/exec';
 
+    // 1. SERVICE WORKER PARA ANDROID/IOS OFFLINE
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').catch(e => console.log(e));
@@ -159,6 +162,7 @@
     const ctx = canvas.getContext('2d');
     let painting = false;
 
+    // --- LÓGICA DE FILA OFFLINE ---
     function saveToQueue(data) {
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         queue.push(data);
@@ -169,17 +173,25 @@
         if (!navigator.onLine) return;
         let queue = JSON.parse(localStorage.getItem('hse_queue') || '[]');
         if (queue.length === 0) return;
+
         for (let i = 0; i < queue.length; i++) {
             try {
-                await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(queue[i]) });
-                queue.splice(i, 1); i--;
+                await fetch(GOOGLE_SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(queue[i]) 
+                });
+                queue.splice(i, 1);
+                i--;
             } catch (e) { break; }
         }
         localStorage.setItem('hse_queue', JSON.stringify(queue));
     }
+
     window.addEventListener('online', syncQueue);
     window.addEventListener('load', syncQueue);
 
+    // --- LÓGICA DE FOTO (SEM DESENHO SOBRE ELA) ---
     document.getElementById('upload-trigger').onclick = () => fotoInput.click();
 
     fotoInput.addEventListener('change', function(e) {
@@ -193,6 +205,7 @@
         reader.readAsDataURL(file);
     });
 
+    // --- LÓGICA DE DESENHO EM BRANCO ---
     function iniciarDesenhoBranco() {
         drawingContainer.style.display = 'flex';
         canvas.width = window.innerWidth;
@@ -205,6 +218,7 @@
         ctx.lineCap = "round";
     }
 
+    // Funções de Pintura (Touch e Mouse)
     function startPosition(e) { painting = true; draw(e); }
     function finishedPosition() { painting = false; ctx.beginPath(); }
     function draw(e) {
@@ -212,9 +226,14 @@
         const rect = canvas.getBoundingClientRect();
         const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
         const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-        ctx.lineTo(clientX - rect.left, clientY - rect.top);
-        ctx.stroke(); ctx.beginPath(); ctx.moveTo(clientX - rect.left, clientY - rect.top);
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
     }
+
     canvas.addEventListener('mousedown', startPosition);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
     window.addEventListener('mouseup', finishedPosition);
@@ -230,6 +249,7 @@
         fotoInput.value = ""; 
     };
 
+    // --- GERAÇÃO DE PDF E ENVIO ---
     async function getLogoBase64(url) {
         try {
             const response = await fetch(url);
@@ -242,14 +262,15 @@
         } catch (e) { return null; }
     }
 
-    // GERAÇÃO DE PDF ESTRUTURADA POR COORDENADAS FIXAS (MÉTRICA GLOBAL)
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const status = document.getElementById('statusMsg');
         const relatorNome = document.getElementById('relator').value.toUpperCase();
         
-        btn.disabled = true; status.style.display = "block"; status.style.color = "orange";
+        btn.disabled = true;
+        status.style.display = "block";
+        status.style.color = "orange";
         status.innerText = "⏳ PROCESANDO REPORTE...";
 
         const { jsPDF } = window.jspdf;
@@ -257,107 +278,57 @@
         const corDeFundo = [203, 213, 224];
         const corDoRotulo = [0, 51, 102];
 
-        // --- 1. CABECERA TÉCNICA RÍGIDA ---
-        doc.setLineWidth(0.4);
+        // --- PDF LAYOUT IDÊNTICO ---
+        doc.setLineWidth(0.5);
         doc.rect(10, 10, 190, 25); 
-        doc.line(50, 10, 50, 35); 
-        doc.line(150, 10, 150, 35);
-        
+        doc.line(50, 10, 50, 35); doc.line(150, 10, 150, 35);
         const logoBase64 = await getLogoBase64('logo-elecnor.png');
-        if (logoBase64) doc.addImage(logoBase64, 'PNG', 13, 14, 32, 16);
-        
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(0);
+        if (logoBase64) doc.addImage(logoBase64, 'PNG', 12, 12, 35, 15);
+        doc.setFontSize(11); doc.setFont("helvetica", "bold");
         doc.text("FORMULARIO NEARMISS", 100, 20, { align: 'center' });
         doc.text("PROYECTO COPIAPÓ SOLAR", 100, 27, { align: 'center' });
-        
-        doc.setFontSize(7);
-        doc.text("CÓDIGO: FT-PC-HSE-43", 152, 15);
-        doc.text("FECHA: 05/05/2026", 152, 19);
-        doc.text("PÁGINA: 1 DE 1", 152, 23);
-        doc.text("REVISIÓN: 00", 152, 27);
-        doc.text("CATEGORÍA: GENERAL", 152, 31);
-        doc.text("SECTOR: SEGURIDAD", 152, 34);
+        doc.setFontSize(7); doc.text("CÓDIGO:", 152, 15); doc.text("FECHA:", 152, 19); doc.text("PÁGINA: 1 DE 1", 152, 23); doc.text("REVISIÓN: 00", 152, 27); doc.text("CATEGORÍA: GENERAL", 152, 31); doc.text("SECTOR: SEGURIDAD", 152, 34);
 
-        // --- 2. SECCIÓN 1: CONTEXTO ---
-        let currentY = 35;
-        doc.setFillColor(...corDeFundo); doc.rect(10, currentY, 190, 8, 'F'); doc.rect(10, currentY, 190, 8);
-        doc.setFontSize(9); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, currentY + 5.5);
-        
-        currentY += 8;
-        doc.rect(10, currentY, 95, 14); doc.rect(105, currentY, 95, 14);
-        doc.setFontSize(7); doc.setTextColor(...corDoRotulo);
-        doc.text("FECHA:", 12, currentY + 4); doc.text("HORA:", 107, currentY + 4);
-        doc.setFontSize(10); doc.setTextColor(0); doc.setFont("helvetica", "normal");
-        doc.text(document.getElementById('fecha').value, 12, currentY + 10);
-        doc.text(document.getElementById('hora').value, 107, currentY + 10);
+        // Seção 1
+        doc.setFillColor(...corDeFundo); doc.rect(10, 35, 190, 8, 'F'); doc.rect(10, 35, 190, 8);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text("1. CONTEXTO", 12, 41);
+        doc.rect(10, 43, 190, 12); doc.line(105, 43, 105, 55);
+        doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("FECHA:", 12, 46); doc.text("HORA:", 107, 46);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text(document.getElementById('fecha').value, 12, 52); doc.text(document.getElementById('hora').value, 107, 52);
+        doc.rect(10, 55, 190, 12); doc.line(80, 55, 80, 67);
+        doc.setFontSize(7); doc.setTextColor(...corDoRotulo); doc.text("DEPARTAMENTO:", 12, 59); doc.text("ÁREA ESPECÍFICA:", 82, 59);
+        doc.setFontSize(9); doc.setTextColor(0); doc.text(document.getElementById('depto').value, 12, 64);
+        const areas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value).join(', ');
+        doc.text(areas, 82, 64);
 
-        currentY += 14;
-        doc.rect(10, currentY, 190, 14);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(...corDoRotulo); 
-        doc.text("DEPARTAMENTO:", 12, currentY + 4);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(0); 
-        doc.text(document.getElementById('depto').value, 12, currentY + 10);
+        // Seção 2
+        doc.setFillColor(...corDeFundo); doc.rect(10, 67, 190, 8, 'F'); doc.rect(10, 67, 190, 8);
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, 73);
+        doc.rect(10, 75, 190, 35); doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 180);
+        doc.text(lines, 12, 82);
 
-        // Subseção Área Específica (Layout Rígido de Checkboxes)
-        currentY += 14;
-        doc.rect(10, currentY, 190, 14);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(...corDoRotulo);
-        doc.text("ÁREA ESPECÍFICA:", 12, currentY + 4);
-        
-        const possibleAreas = ["IIFF", "PV", "BESS", "LAT", "SE C.P", "SE ELE"];
-        const checkedAreas = Array.from(document.querySelectorAll('input[name="area"]:checked')).map(cb => cb.value);
-        doc.setFontSize(9); doc.setTextColor(0);
-        
-        possibleAreas.forEach((area, index) => {
-            let startX = 12 + (index * 31);
-            doc.rect(startX, currentY + 6.5, 3.5, 3.5); // Desenha a caixinha do checkbox
-            if (checkedAreas.includes(area)) {
-                doc.setFont("helvetica", "bold");
-                doc.text("X", startX + 0.8, currentY + 9.3); // Marca com X se estiver checado
-            }
-            doc.setFont("helvetica", "normal");
-            doc.text(area, startX + 5, currentY + 9.5);
-        });
-
-        // --- 3. SEÇÃO 2: DESCRIPCIÓN ---
-        currentY += 14;
-        doc.setFillColor(...corDeFundo); doc.rect(10, currentY, 190, 8, 'F'); doc.rect(10, currentY, 190, 8);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("2. DESCRIPCIÓN DEL EVENTO / HALLAZGO", 12, currentY + 5.5);
-        
-        currentY += 8;
-        doc.rect(10, currentY, 190, 36); doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-        const splitLines = doc.splitTextToSize(document.getElementById('desc').value.toUpperCase(), 182);
-        doc.text(splitLines, 12, currentY + 6);
-
-        // --- 4. SEÇÃO 3: REGISTRO FOTOGRÁFICO ---
-        currentY += 36;
-        doc.setFillColor(...corDeFundo); doc.rect(10, currentY, 190, 8, 'F'); doc.rect(10, currentY, 190, 8);
-        doc.setFont("helvetica", "bold"); doc.text("3. REGISTRO FOTOGRÁFICO", 12, currentY + 5.5);
-        
-        currentY += 8;
-        doc.rect(10, currentY, 190, 96);
+        // Seção 3
+        doc.setFillColor(...corDeFundo); doc.rect(10, 110, 190, 8, 'F'); doc.rect(10, 110, 190, 8);
+        doc.text("3. REGISTRO FOTOGRÁFICO", 12, 116);
+        doc.rect(10, 118, 190, 105);
         if (preview.src && preview.style.display !== 'none') {
-            doc.addImage(preview.src, 'JPEG', 11, currentY + 1, 188, 94);
+            doc.addImage(preview.src, 'JPEG', 15, 122, 180, 95);
         }
 
-        // --- 5. SEÇÃO 4: IDENTIFICACIÓN ---
-        currentY += 96;
-        doc.setFillColor(...corDeFundo); doc.rect(10, currentY, 190, 8, 'F'); doc.rect(10, currentY, 190, 8);
-        doc.setFont("helvetica", "bold"); doc.text("4. IDENTIFICACIÓN", 12, currentY + 5.5);
-        
-        currentY += 8;
-        doc.rect(10, currentY, 95, 16); doc.rect(105, currentY, 95, 16);
-        doc.setFontSize(7); doc.setTextColor(...corDoRotulo);
-        doc.text("NOMBRE Y APELLIDO:", 12, currentY + 4); doc.text("EMPRESA:", 107, currentY + 4);
-        doc.setFontSize(10); doc.setTextColor(0); doc.setFont("helvetica", "normal");
-        doc.text(relatorNome, 12, currentY + 11);
-        doc.text(document.getElementById('empresa').value.toUpperCase(), 107, currentY + 11);
+        // Seção 4
+        doc.setFillColor(...corDeFundo); doc.rect(10, 223, 190, 8, 'F'); doc.rect(10, 223, 190, 8);
+        doc.text("4. IDENTIFICACIÓN", 12, 229);
+        doc.rect(10, 231, 190, 15); doc.line(105, 231, 105, 246);
+        doc.setFontSize(8); doc.setTextColor(...corDoRotulo); doc.text("NOMBRE Y APELLIDO:", 12, 235); doc.text("EMPRESA:", 107, 235);
+        doc.setFontSize(10); doc.setTextColor(0); doc.text(relatorNome, 12, 242);
+        doc.text(document.getElementById('empresa').value.toUpperCase(), 107, 242);
 
-        // --- PROCESSO DE ENVIO ---
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         const fileName = `${relatorNome}_${document.getElementById('fecha').value}.pdf`;
         const payload = { name: fileName, bytes: pdfBase64 };
 
+        // ENVIO COM FILA
         if (navigator.onLine) {
             try {
                 await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
